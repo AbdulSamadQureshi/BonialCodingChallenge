@@ -29,21 +29,7 @@ class BrouchersActivity : ComponentActivity() {
     }
 }
 
-@Composable
-private fun BrochuresUi(
-    brochuresViewModel: BrochuresViewModel,
-) {
-    Scaffold(
-        modifier = Modifier
-            .fillMaxSize()
-            .safeDrawingPadding(),
 
-        ) { innerPadding ->
-        Box(modifier = Modifier.padding(innerPadding)) {
-            HomeScreen(brochuresViewModel)
-        }
-    }
-}
 
 @Composable
 fun BrouchersActivityContent(
