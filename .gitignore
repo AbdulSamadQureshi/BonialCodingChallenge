@@ -1,0 +1,141 @@
+/local.properties
+/.idea/caches
+/.idea/libraries
+/.idea/modules.xml
+/.idea/workspace.xml
+/.idea/navEditor.xml
+/.idea/assetWizardSettings.xml
+/build
+/captures
+.cxx
+
+
+# ========================================
+# macOS system files
+# ========================================
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon?
+._*
+.Spotlight-V100
+.Trashes
+.fseventsd
+.nfs*
+
+# ========================================
+# Android Studio / IntelliJ IDEA
+# ========================================
+.idea/
+*.iml
+*.iws
+*.ipr
+
+# Keep shared project configs (optional but safe)
+!.idea/codeStyles/
+!.idea/runConfigurations/
+!.idea/vcs.xml
+
+# ========================================
+# Gradle
+# ========================================
+.gradle/
+build/
+**/build/
+**/out/
+local.properties
+.gradle-cache/
+!gradle/wrapper/gradle-wrapper.jar
+!gradle/wrapper/gradle-wrapper.properties
+.gradle/7.*/executionHistory/
+
+# ========================================
+# Android specific
+# ========================================
+captures/
+.externalNativeBuild/
+.cxx/
+**/*.apk
+*.ap_
+**/*.aab
+*.dex
+**/output-metadata.json
+
+# ========================================
+# Signing / Keystore
+# ========================================
+*.jks
+*.keystore
+releaseKeystore.jks
+*.key
+*.pem
+*.p12
+*.der
+
+# ========================================
+# Logs / Temp / Caches
+# ========================================
+*.log
+*.tmp
+*.temp
+*.swp
+*.lock
+*.orig
+.cache/
+.idea/caches/
+.idea/libraries/
+.idea/modules.xml
+.idea/workspace.xml
+.idea/navEditor.xml
+.idea/assetWizardSettings.xml
+*.kts~
+
+# ========================================
+# Kotlin / Java build artifacts
+# ========================================
+.kotlin/
+*.class
+*.jar
+*.war
+*.ear
+hs_err_pid*
+replay_pid*
+
+# ========================================
+# Local environment / API keys
+# ========================================
+.env
+*.local
+*.envrc
+*.properties.local
+
+# ========================================
+# NDK / JNI
+# ========================================
+obj/
+jniLibs/
+*.so
+
+# ========================================
+# Firebase / Google Services
+# ========================================
+google-services.json
+GoogleService-Info.plist
+
+# ========================================
+# Android test results
+# ========================================
+/outputs/
+**/reports/
+**/test-results/
+
+# ========================================
+# Misc
+# ========================================
+*.bak
+*.tmp
+*.orig
+Thumbs.db
+
+# Keystore properties files
+keystore.release.properties
