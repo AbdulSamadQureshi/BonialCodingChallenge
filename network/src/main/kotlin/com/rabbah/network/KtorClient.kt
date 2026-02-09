@@ -52,49 +52,7 @@ class KtorClient(
                         delay(500)
                         val responseHeaders = headersOf(HttpHeaders.ContentType to listOf("application/json"))
                         when (request.url.encodedPath) {
-                            "/appVersion" -> respond(MockApiUtils.appVersion(), HttpStatusCode.OK, responseHeaders)
-                            "/login" -> respond(MockApiUtils.login(""), HttpStatusCode.OK, responseHeaders)
-                            "/requestOtp" -> respond(MockApiUtils.requestOtp(""), HttpStatusCode.OK, responseHeaders)
-                            "/verifyOtp" -> respond(MockApiUtils.verifyOtp(0, ""), HttpStatusCode.OK, responseHeaders)
-                            "/homeOffer" -> respond(MockApiUtils.homeOffer(0), HttpStatusCode.OK, responseHeaders)
-                            "/updateAccountDetails" -> respond(MockApiUtils.updateAccountDetails("", "", "", ""), HttpStatusCode.OK, responseHeaders)
-                            "/accountDetails" -> respond(MockApiUtils.accountDetail(0), HttpStatusCode.OK, responseHeaders)
-                            "/logout" -> respond(MockApiUtils.logout(0), HttpStatusCode.OK, responseHeaders)
-                            "/updateProfilePicture" -> {
-                                val userId = request.url.parameters["userId"]?.toIntOrNull() ?: 0
-                                val profilePictureUrl = request.url.parameters["profilePictureUrl"] ?: ""
-                                respond(MockApiUtils.updateProfilePicture(userId, profilePictureUrl), HttpStatusCode.OK, responseHeaders)
-                            }
-                            "/activeOffers" -> {
-                                val userId = request.url.parameters["userId"]?.toIntOrNull() ?: 0
-                                val pageNumber = request.url.parameters["pageNumber"]?.toIntOrNull() ?: 1
-                                respond(MockApiUtils.activeOffers(userId), HttpStatusCode.OK, responseHeaders)
-                            }
-                            "/expiredOffers" -> {
-                                val userId = request.url.parameters["userId"]?.toIntOrNull() ?: 0
-                                val pageNumber = request.url.parameters["pageNumber"]?.toIntOrNull() ?: 1
-                                respond(MockApiUtils.expiredOffers(userId), HttpStatusCode.OK, responseHeaders)
-                            }
-                            "/transactionsHistory" -> {
-                                val userId = request.url.parameters["userId"]?.toIntOrNull() ?: 0
-                                val page = request.url.parameters["page"]?.toIntOrNull() ?: 0
-                                respond(MockApiUtils.transactionsHistory(userId, page), HttpStatusCode.OK, responseHeaders)
-                            }
-                            "/transactionDetails" -> respond(MockApiUtils.transactionDetails(0, 0), HttpStatusCode.OK, responseHeaders)
-                            "/nearbyVends" -> {
-                                val query = request.url.parameters["query"] ?: ""
-                                val lat = request.url.parameters["lat"]?.toDoubleOrNull() ?: 0.0
-                                val lon = request.url.parameters["lon"]?.toDoubleOrNull() ?: 0.0
-                                val page = request.url.parameters["page"]?.toIntOrNull() ?: 0
-                                respond(MockApiUtils.nearbyVends(query, lat, lon, page), HttpStatusCode.OK, responseHeaders)
-                            }
-                            "/wallet" -> respond(MockApiUtils.wallet(0), HttpStatusCode.OK, responseHeaders)
-                            "/lockCard" -> respond(MockApiUtils.lockCard(0), HttpStatusCode.OK, responseHeaders)
-                            "/unlockCard" -> respond(MockApiUtils.unlockCard(0), HttpStatusCode.OK, responseHeaders)
-                            "/activateCard" -> respond(MockApiUtils.activateCard(0), HttpStatusCode.OK, responseHeaders)
-                            "/requestCard" -> respond(MockApiUtils.requestCard(0), HttpStatusCode.OK, responseHeaders)
-                            "/topUp" -> respond(MockApiUtils.topUpResponse(0), HttpStatusCode.OK, responseHeaders)
-//                            "/vendDetails" -> respond(MockApiUtils.topUpResponse(0), HttpStatusCode.OK, responseHeaders)
+                            "/homeOffer" -> respond(MockApiUtils.brochures(), HttpStatusCode.OK, responseHeaders)
                             else -> error("Unhandled ${request.url.encodedPath}")
                         }
                     }

@@ -6,7 +6,7 @@ import androidx.core.content.edit
 import com.google.gson.Gson
 
 class SharedPrefsManager(context: Context) {
-    private val sharedPreferences: SharedPreferences = context.getSharedPreferences("MyPreferences", Context.MODE_PRIVATE)
+    private val sharedPreferences: SharedPreferences = context.getSharedPreferences("BonialPreferences", Context.MODE_PRIVATE)
     private val gson = Gson()
 
     /**

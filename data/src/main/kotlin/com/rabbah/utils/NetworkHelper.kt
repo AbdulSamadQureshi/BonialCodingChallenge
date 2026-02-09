@@ -10,7 +10,6 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import java.io.IOException
-import java.net.HttpURLConnection
 
 /**
  * A safeApiCall wrapper for Ktor that converts suspend functions into a Flow emitting Request states.
@@ -52,21 +51,5 @@ suspend fun manageThrowable(throwable: Throwable): ApiError {
         else -> {
             ApiError(code = "Unknown", message = throwable.message ?: "An unexpected error occurred")
         }
-    }
-}
-
-/**
- * Provides a human-readable description for common HTTP status codes.
- */
-fun getErrorDescription(code: Int): String {
-    return when (code) {
-        HttpURLConnection.HTTP_GATEWAY_TIMEOUT -> "Timeout"
-        HttpURLConnection.HTTP_BAD_REQUEST -> "Bad request"
-        HttpURLConnection.HTTP_UNAUTHORIZED -> "Unauthorized"
-        HttpURLConnection.HTTP_FORBIDDEN -> "Forbidden"
-        HttpURLConnection.HTTP_NOT_FOUND -> "Not found"
-        HttpURLConnection.HTTP_UNAVAILABLE -> "Service Unavailable"
-        HttpURLConnection.HTTP_INTERNAL_ERROR -> "Internal server error"
-        else -> "Something went wrong"
     }
 }

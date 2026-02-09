@@ -62,19 +62,19 @@ import com.rabbah.clw.presentation.utils.UiState
 import com.rabbah.domain.model.network.response.BrochureDto
 
 @Composable
-fun HomeScreen(homeViewModel: HomeViewModel) {
+fun HomeScreen(brochuresViewModel: BrochuresViewModel) {
 
-    val walletUiState by homeViewModel.walletUiState.collectAsState()
+    val walletUiState by brochuresViewModel.walletUiState.collectAsState()
     val context = LocalContext.current
-    val offerUiState by homeViewModel.offerUiState.collectAsState()
-    val nearbyVendsUiState by homeViewModel.nearbyVendsUiState.collectAsState()
-    val user by homeViewModel.user.collectAsState()
+    val offerUiState by brochuresViewModel.brochuresUiState.collectAsState()
+    val nearbyVendsUiState by brochuresViewModel.nearbyVendsUiState.collectAsState()
+    val user by brochuresViewModel.user.collectAsState()
 
     LaunchedEffect(Unit) {
-        homeViewModel.getWallet(123)
-        homeViewModel.getHomeOffer(123)
+        brochuresViewModel.getWallet(123)
+        brochuresViewModel.getBrochures(123)
         // Hardcoded location for now as per requirement context, usually this comes from LocationManager
-        homeViewModel.getNearbyVends(24.7136, 46.6753)
+        brochuresViewModel.getNearbyVends(24.7136, 46.6753)
     }
 
     LaunchedEffect(walletUiState) {

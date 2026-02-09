@@ -45,7 +45,6 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -54,59 +53,32 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.rabbah.clw.R
-import com.rabbah.clw.presentation.accountDetail.AccountDetailViewModel
-import com.rabbah.clw.presentation.more.ProfileScreen
-import com.rabbah.clw.presentation.nfc.NfcBottomSheet
-import com.rabbah.clw.presentation.offers.OffersScreen
-import com.rabbah.clw.presentation.offers.OffersViewModel
 import com.rabbah.clw.presentation.theme.CloseLoopWalletTheme
 import com.rabbah.clw.presentation.theme.ColorPrimary
 import com.rabbah.clw.presentation.theme.White
 import com.rabbah.clw.presentation.utils.UiState
-import com.rabbah.clw.presentation.wallet.WalletScreen
-import com.rabbah.clw.presentation.wallet.WalletViewModel
 import org.koin.androidx.compose.koinViewModel
 
-class HomeActivity : ComponentActivity() {
+class BrouchersActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
             CloseLoopWalletTheme {
-                val homeViewModel: HomeViewModel = koinViewModel()
-                val walletViewModel: WalletViewModel = koinViewModel()
-                val offersViewModel: OffersViewModel = koinViewModel()
-                val accountDetailViewModel: AccountDetailViewModel = koinViewModel()
-                HomeUi(homeViewModel, walletViewModel, offersViewModel, accountDetailViewModel)
+                val brochuresViewModel: BrochuresViewModel = koinViewModel()
+                BrochuresUi(brochuresViewModel)
             }
         }
     }
 }
 
 @Composable
-private fun HomeUi(
-    homeViewModel: HomeViewModel,
-    walletViewModel: WalletViewModel,
-    offersViewModel: OffersViewModel,
-    accountDetailViewModel: AccountDetailViewModel,
+private fun BrochuresUi(
+    brochuresViewModel: BrochuresViewModel,
 ) {
     val context = LocalContext.current
-    val walletUiState by walletViewModel.walletUiState.collectAsState()
     var currentDestination by rememberSaveable { mutableStateOf(AppDestinations.HOME) }
     var showNfcBottomSheet by remember { mutableStateOf(false) }
-
-    LaunchedEffect(Unit) {
-        walletViewModel.getWallet(123)
-    }
-
-    val cardData = (walletUiState as? UiState.Success)?.data?.card?.number
-
-    if (showNfcBottomSheet && cardData != null) {
-        NfcBottomSheet(
-            cardData = cardData,
-            onDismissRequest = { showNfcBottomSheet = false }
-        )
-    }
 
     HomeActivityContent(
         currentDestination = currentDestination,
@@ -132,7 +104,7 @@ private fun HomeUi(
         },
         screenContent = {
             when (currentDestination) {
-                AppDestinations.HOME -> HomeScreen(homeViewModel)
+                AppDestinations.HOME -> HomeScreen(brochuresViewModel)
                 AppDestinations.Wallet -> WalletScreen(walletViewModel = walletViewModel)
                 AppDestinations.Scan -> { /* Scan Screen Placeholder */
                 }

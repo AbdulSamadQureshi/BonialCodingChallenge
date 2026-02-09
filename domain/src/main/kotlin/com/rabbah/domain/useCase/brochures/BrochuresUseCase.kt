@@ -7,10 +7,10 @@ import com.rabbah.domain.repository.BrochuresRepository
 import com.rabbah.domain.useCase.BaseUseCase
 import kotlinx.coroutines.flow.Flow
 
-class HomeOfferUseCase(
+class BrochuresUseCase(
     private val repository: BrochuresRepository
 ) : BaseUseCase<Any?, Flow<Request<MultiBaseDto<BrochureDto>>>> {
     override suspend fun invoke(params: Any?): Flow<Request<MultiBaseDto<BrochureDto>>> {
-        return repository.brochures(params as Int)
+        return repository.brochures()
     }
 }
