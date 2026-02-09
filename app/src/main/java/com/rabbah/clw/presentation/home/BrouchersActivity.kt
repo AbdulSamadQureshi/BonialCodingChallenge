@@ -12,7 +12,6 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import com.rabbah.clw.presentation.theme.CloseLoopWalletTheme
 import org.koin.androidx.compose.koinViewModel
@@ -34,11 +33,16 @@ class BrouchersActivity : ComponentActivity() {
 private fun BrochuresUi(
     brochuresViewModel: BrochuresViewModel,
 ) {
-    val context = LocalContext.current
+    Scaffold(
+        modifier = Modifier
+            .fillMaxSize()
+            .safeDrawingPadding(),
 
-    BrouchersActivityContent(
-        screenContent = { HomeScreen(brochuresViewModel) }
-    )
+        ) { innerPadding ->
+        Box(modifier = Modifier.padding(innerPadding)) {
+            HomeScreen(brochuresViewModel)
+        }
+    }
 }
 
 @Composable
