@@ -1,33 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<resources>
-    <string name="app_name">محفظة الحلقة المغلقة</string>
-    <string name="enter_you_phone_number_to_continue">أدخل رقم هاتفك للمتابعة</string>
-    <string name="phone_number">رقم الهاتف</string>
-    <string name="get_started">البدء</string>
-    <string name="your_digital_wallet_for_seamless_vending_machine_payments">محفظتك الرقمية لمدفوعات آلات البيع السلسة</string>
-    <string name="welcome_back">مرحباً بعودتك</string>
-    <string name="enter_your_phone_number_to_continue">أدخل رقم هاتفك للمتابعة</string>
-    <string name="verify_otp">التحقق من OTP</string>
-    <string name="we_ve_sent_a_verification_code_to_your_phone">لقد أرسلنا رمز التحقق إلى هاتفك</string>
-    <string name="enter_verification_code">أدخل رمز التحقق</string>
-    <string name="resend_code">إعادة إرسال الرمز %s</string>
-    <string name="verify">التحقق</string>
-    <string name="complete_your_profile">أكمل ملفك الشخصي</string>
-    <string name="we_need_details_to_set_up_your_account">نحن بحاجة إلى تفاصيل لإعداد حسابك</string>
-    <string name="full_name">الاسم الكامل</string>
-    <string name="enter_your_full_name">أدخل اسمك الكامل</string>
-    <string name="email_address">عنوان البريد الإلكتروني</string>
-    <string name="enter_your_email">أدخل بريدك الإلكتروني</string>
-    <string name="date_of_birth">تاريخ الميلاد</string>
-    <string name="mm_dd_yyyy">mm/dd/yyyy</string>
-    <string name="address">العنوان</string>
-    <string name="enter_your_address">أدخل عنوانك</string>
-    <string name="next">التالي</string>
-    <string name="submit">إرسال</string>
-    <string name="welcome_back_user">مرحباً بعودتك، %s 👋</string>
-    <string name="no_vending_machines_found_nearby">لم يتم العثور على آلات بيع قريبة</string>
-    <string name="invite_friends">دعوة الأصدقاء</string>
-    <string name="active_promotions">العروض النشطة</string>
-    <string name="search_by_product">البحث حسب المنتج</string>
-    <string name="all_vending_machines">جميع آلات البيع</string>
-</resources>

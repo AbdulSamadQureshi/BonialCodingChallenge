@@ -1,9 +1,8 @@
 <resources>
-    <string name="app_name">Closed Loop Wallet</string>
+    <string name="app_name">Brouchers</string>
     <string name="enter_you_phone_number_to_continue">Enter your Phone Number to continue</string>
     <string name="phone_number">Phone Number</string>
     <string name="get_started">Get started</string>
-    <string name="servicedesc" translatable="false">CloseLoopWallet NFC Service</string>
     <string name="your_digital_wallet_for_seamless_vending_machine_payments">Your digital wallet for seamless vending machine payments</string>
     <string name="welcome_back">Welcome Back</string>
     <string name="enter_your_phone_number_to_continue">Enter your Phone Number to continue</string>
