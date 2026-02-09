@@ -1,15 +1,7 @@
 package com.rabbah.domain.di
 
 import com.rabbah.domain.useCase.app.AppVersionUseCase
-import com.rabbah.domain.useCase.auth.LoginUseCase
-import com.rabbah.domain.useCase.auth.RequestOtpUseCase
-import com.rabbah.domain.useCase.auth.VerifyOtpUseCase
-import com.rabbah.domain.useCase.localStorage.GetUserUseCase
-import com.rabbah.domain.useCase.localStorage.LogoutUserUseCase
-import com.rabbah.domain.useCase.localStorage.SaveUserUseCase
-import com.rabbah.domain.useCase.offers.ActiveOffersUseCase
-import com.rabbah.domain.useCase.offers.ExpiredOffersUseCase
-import com.rabbah.domain.useCase.offers.HomeOfferUseCase
+import com.rabbah.domain.useCase.brochures.HomeOfferUseCase
 import com.rabbah.domain.useCase.transaction.TransactionDetailUseCase
 import com.rabbah.domain.useCase.transaction.TransactionHistoryUseCase
 import com.rabbah.domain.useCase.user.AccountDetailsUseCase

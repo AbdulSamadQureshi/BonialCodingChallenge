@@ -1,11 +1,7 @@
 package com.rabbah.data.repository
 
-import com.rabbah.data.remote.service.UserApiService
-import com.rabbah.domain.model.network.request.UpdateAccountRequest
 import com.rabbah.domain.model.network.response.Request
 import com.rabbah.domain.model.network.response.SingleBaseDto
-import com.rabbah.domain.model.network.response.UserDto
-import com.rabbah.domain.repository.UserRepository
 import com.rabbah.utils.safeApiCall
 import kotlinx.coroutines.flow.Flow
 

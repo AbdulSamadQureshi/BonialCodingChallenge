@@ -18,7 +18,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.rememberScrollState
@@ -60,10 +59,7 @@ import com.rabbah.clw.presentation.theme.InviteFriend
 import com.rabbah.clw.presentation.theme.White
 import com.rabbah.clw.presentation.transactionDetail.TransactionDetailActivity
 import com.rabbah.clw.presentation.utils.UiState
-import com.rabbah.domain.model.network.response.OfferDto
-import com.rabbah.domain.model.network.response.UserDto
-import com.rabbah.domain.model.network.response.VendDto
-import com.rabbah.domain.model.network.response.WalletDto
+import com.rabbah.domain.model.network.response.BrochureDto
 
 @Composable
 fun HomeScreen(homeViewModel: HomeViewModel) {
@@ -104,7 +100,7 @@ fun HomeScreen(homeViewModel: HomeViewModel) {
 @Composable
 fun HomeContent(
     walletUiState: UiState<WalletDto>,
-    offerUiState: UiState<List<OfferDto>>,
+    offerUiState: UiState<List<BrochureDto>>,
     nearbyVendsUiState: UiState<List<VendDto>>,
     user: UserDto?,
     onTransactionsClick: () -> Unit,
@@ -135,7 +131,7 @@ fun HomeContent(
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            if (offerUiState is UiState.Success && (offerUiState as UiState.Success<List<OfferDto>>).data.isNotEmpty()) {
+            if (offerUiState is UiState.Success && (offerUiState as UiState.Success<List<BrochureDto>>).data.isNotEmpty()) {
                 // Active Promotions
                 Text(
                     text = stringResource(R.string.active_promotions),
@@ -285,7 +281,7 @@ fun WalletCard(walletUiState: UiState<WalletDto>) {
 }
 
 @Composable
-fun PromotionCard(offerUiState: UiState<List<OfferDto>>) {
+fun PromotionCard(offerUiState: UiState<List<BrochureDto>>) {
     when (offerUiState) {
         is UiState.Success -> {
             val offers = offerUiState.data
@@ -342,7 +338,7 @@ fun PromotionCard(offerUiState: UiState<List<OfferDto>>) {
 }
 
 @Composable
-fun PromotionItem(offer: OfferDto) {
+fun PromotionItem(offer: BrochureDto) {
     val uriHandler = LocalUriHandler.current
     Card(
         shape = RoundedCornerShape(16.dp),
@@ -540,8 +536,8 @@ fun HomeContentPreview() {
         walletUiState = UiState.Success(WalletDto(walletBalance = 122.75)),
         offerUiState = UiState.Success(
             data = listOf(
-                OfferDto(1, "Title 1", "Description 1", "Expiry 1", "20 day"),
-                OfferDto(2, "Title 2", "Description 2", "Expiry 2", "30 day")
+                BrochureDto(1, "Title 1", "Description 1", "Expiry 1", "20 day"),
+                BrochureDto(2, "Title 2", "Description 2", "Expiry 2", "30 day")
             )
         ),
         nearbyVendsUiState = UiState.Success(listOf(VendDto(1, 0.0, 0.0, "Title", "Address", "50m", "", true))),

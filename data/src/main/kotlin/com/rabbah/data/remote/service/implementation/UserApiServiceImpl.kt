@@ -1,9 +1,6 @@
 package com.rabbah.data.remote.service.implementation
 
-import com.rabbah.data.remote.service.UserApiService
-import com.rabbah.domain.model.network.request.UpdateAccountRequest
 import com.rabbah.domain.model.network.response.SingleBaseDto
-import com.rabbah.domain.model.network.response.UserDto
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.request.get

@@ -1,8 +1,6 @@
 package com.rabbah.data.remote.service.implementation
 
-import com.rabbah.data.remote.service.CardApiService
 import com.rabbah.domain.model.network.response.SingleBaseDto
-import com.rabbah.domain.model.network.response.CardDto
 
 class CardApiServiceImpl: CardApiService {
     override suspend fun lockCard(userId: Int): SingleBaseDto<CardDto> {

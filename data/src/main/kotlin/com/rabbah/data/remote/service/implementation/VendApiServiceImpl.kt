@@ -1,9 +1,7 @@
 package com.rabbah.data.remote.service.implementation
 
-import com.rabbah.data.remote.service.VendApiService
 import com.rabbah.domain.model.network.response.MultiBaseDto
 import com.rabbah.domain.model.network.response.PaginatedDto
-import com.rabbah.domain.model.network.response.VendDto
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.request.get

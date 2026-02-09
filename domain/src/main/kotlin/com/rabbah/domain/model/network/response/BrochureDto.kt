@@ -4,7 +4,7 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class OfferDto(
+data class BrochureDto(
     @SerialName("offer_id")
     val offerId: Int,
     @SerialName("image_url")

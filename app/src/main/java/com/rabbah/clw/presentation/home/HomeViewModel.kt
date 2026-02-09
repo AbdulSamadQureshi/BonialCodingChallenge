@@ -4,13 +4,9 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.rabbah.clw.presentation.utils.UiState
 import com.rabbah.clw.presentation.utils.toErrorMessage
-import com.rabbah.domain.model.network.response.OfferDto
+import com.rabbah.domain.model.network.response.BrochureDto
 import com.rabbah.domain.model.network.response.Request
-import com.rabbah.domain.model.network.response.UserDto
-import com.rabbah.domain.model.network.response.VendDto
-import com.rabbah.domain.model.network.response.WalletDto
-import com.rabbah.domain.useCase.localStorage.GetUserUseCase
-import com.rabbah.domain.useCase.offers.HomeOfferUseCase
+import com.rabbah.domain.useCase.brochures.HomeOfferUseCase
 import com.rabbah.domain.useCase.vend.NearbyVendRequest
 import com.rabbah.domain.useCase.vend.NearbyVendsUseCase
 import com.rabbah.domain.useCase.wallet.WalletUseCase
@@ -28,7 +24,7 @@ class HomeViewModel(
     private val _walletUiState = MutableStateFlow<UiState<WalletDto>>(UiState.Idle)
     val walletUiState = _walletUiState.asStateFlow()
 
-    private val _offerUiState = MutableStateFlow<UiState<List<OfferDto>>>(UiState.Idle)
+    private val _offerUiState = MutableStateFlow<UiState<List<BrochureDto>>>(UiState.Idle)
     val offerUiState = _offerUiState.asStateFlow()
 
     private val _nearbyVendsUiState = MutableStateFlow<UiState<List<VendDto>>>(UiState.Idle)
