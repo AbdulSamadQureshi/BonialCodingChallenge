@@ -1,48 +1,49 @@
 package com.bonial.domain.model.network.response
 
-import kotlinx.serialization.SerialName
-import kotlinx.serialization.Serializable
+import android.os.Parcelable
+import com.google.gson.annotations.SerializedName
+import kotlinx.parcelize.Parcelize
 
-@Serializable
+@Parcelize
 data class BrochureResponse(
-    @SerialName("_embedded")
+    @SerializedName("_embedded")
     val embedded: EmbeddedDto? = null
-)
+) : Parcelable
 
-@Serializable
+@Parcelize
 data class EmbeddedDto(
-    @SerialName("contents")
+    @SerializedName("contents")
     val contents: List<ContentWrapperDto> = emptyList()
-)
+) : Parcelable
 
-@Serializable
+@Parcelize
 data class ContentWrapperDto(
-    @SerialName("contentType")
+    @SerializedName("contentType")
     val contentType: String? = null,
-    @SerialName("content")
+    @SerializedName("content")
     val content: BrochureDto? = null
-)
+) : Parcelable
 
-@Serializable
+@Parcelize
 data class BrochureDto(
-    @SerialName("id")
+    @SerializedName("id")
     val id: Long? = null,
-    @SerialName("title")
+    @SerializedName("title")
     val title: String? = null,
-    @SerialName("brochureImage")
+    @SerializedName("brochureImage")
     val brochureImage: String? = null,
-    @SerialName("distance")
+    @SerializedName("distance")
     val distance: Double? = null,
-    @SerialName("publisher")
+    @SerializedName("publisher")
     val publisher: PublisherDto? = null
-)
+) : Parcelable
 
-@Serializable
+@Parcelize
 data class PublisherDto(
-    @SerialName("id")
+    @SerializedName("id")
     val id: String? = null,
-    @SerialName("name")
+    @SerializedName("name")
     val name: String? = null,
-    @SerialName("type")
+    @SerializedName("type")
     val type: String? = null
-)
+) : Parcelable

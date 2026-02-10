@@ -1,15 +1,30 @@
 plugins {
-    id("org.jetbrains.kotlin.jvm")
-    alias(libs.plugins.kotlin.serialization)
+    alias(libs.plugins.android.library)
+    alias(libs.plugins.kotlin.android)
+    alias(libs.plugins.kotlin.parcelize)
 }
 
-kotlin {
-    jvmToolchain(17)
+android {
+    namespace = "com.bonial.domain"
+    compileSdk = 36
+
+    defaultConfig {
+        minSdk = 24
+    }
+
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
+    }
+
+    kotlin {
+        jvmToolchain(17)
+    }
 }
 
 dependencies {
     implementation(libs.koin.core)
-    implementation(libs.kotlinx.serialization.json)
+    implementation(libs.gson)
     implementation(libs.kotlinx.coroutines.core)
     testImplementation(libs.junit)
 }

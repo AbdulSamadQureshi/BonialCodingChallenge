@@ -1,7 +1,7 @@
 plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.kotlin.android)
-    alias(libs.plugins.kotlin.serialization)
+    alias(libs.plugins.kotlin.parcelize)
 }
 
 android {
@@ -24,12 +24,13 @@ android {
 
 dependencies {
     implementation(project(":core"))
+    implementation(project(":domain"))
     
     // Retrofit
     api(libs.retrofit.core)
-    api(libs.retrofit.kotlin.serialization)
+    api(libs.retrofit.gson)
     api(libs.okhttp.logging)
     
     implementation(libs.koin.core)
-    implementation(libs.kotlinx.serialization.json)
+    implementation(libs.gson)
 }

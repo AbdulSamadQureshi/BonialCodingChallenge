@@ -2,25 +2,16 @@ package com.bonial.network
 
 import com.bonial.core.preferences.PreferenceKeys
 import com.bonial.core.preferences.SharedPrefsManager
-import kotlinx.serialization.json.Json
-import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
-import retrofit2.converter.kotlinx.serialization.asConverterFactory
+import retrofit2.converter.gson.GsonConverterFactory
 
 class RetrofitClient(
     private val baseUrl: String,
     private val enableLogging: Boolean,
     private val sharedPrefsManager: SharedPrefsManager
 ) {
-    private val json = Json {
-        ignoreUnknownKeys = true
-        isLenient = true
-        encodeDefaults = true
-        prettyPrint = true
-    }
-
     private val okHttpClient: OkHttpClient by lazy {
         val loggingInterceptor = HttpLoggingInterceptor().apply {
             level = if (enableLogging) {
@@ -56,7 +47,7 @@ class RetrofitClient(
         Retrofit.Builder()
             .baseUrl(baseUrl)
             .client(okHttpClient)
-            .addConverterFactory(json.asConverterFactory("application/json".toMediaType()))
+            .addConverterFactory(GsonConverterFactory.create())
             .build()
     }
 }

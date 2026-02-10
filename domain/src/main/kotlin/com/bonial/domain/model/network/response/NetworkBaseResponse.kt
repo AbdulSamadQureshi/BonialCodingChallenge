@@ -45,18 +45,3 @@ open class MultiBaseDto<T>(
     @SerialName("data")
     open var data: List<T?>? = ArrayList(),
 ) : BaseDto()
-
-
-@Serializable
-open class PaginatedDto<T>(
-    @SerialName("page")
-    open val page: Int = 0,
-    @SerialName("page_size")
-    val pageSize: Int,
-    @SerialName("total_pages")
-    val totalPages: Int,
-    @SerialName("total_items")
-    val totalItems: Int,
-    @SerialName("has_next")
-    val hasNext: Boolean,
-) : MultiBaseDto<T>()
