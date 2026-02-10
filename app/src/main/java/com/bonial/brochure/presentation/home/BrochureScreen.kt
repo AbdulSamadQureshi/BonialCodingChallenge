@@ -38,7 +38,6 @@ import com.bonial.brochure.presentation.theme.White
 import com.bonial.brochure.presentation.utils.UiState
 import com.bonial.domain.model.network.response.BrochureDto
 import com.bonial.domain.model.network.response.ContentWrapperDto
-import com.bonial.domain.model.network.response.PublisherDto
 
 @Composable
 fun BrochuresScreen(brochuresViewModel: BrochuresViewModel) {

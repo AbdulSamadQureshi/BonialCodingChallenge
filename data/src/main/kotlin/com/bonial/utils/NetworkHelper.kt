@@ -1,7 +1,6 @@
 package com.bonial.utils
 
 import com.bonial.domain.model.network.response.ApiError
-import com.bonial.domain.model.network.response.BaseDto
 import com.bonial.domain.model.network.response.Request
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
