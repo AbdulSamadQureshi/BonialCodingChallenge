@@ -25,10 +25,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
+import coil.request.ImageRequest
 import com.bonial.brochure.R
 import com.bonial.brochure.presentation.theme.CloseLoopWalletTheme
 import com.bonial.brochure.presentation.theme.White
@@ -48,20 +50,18 @@ fun BrochuresScreen(brochuresViewModel: BrochuresViewModel) {
     Box(modifier = Modifier
         .fillMaxSize()
         .background(White)) {
-        when (uiState) {
+        when (val state = uiState) {
             is UiState.Loading -> {
                 CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
             }
 
             is UiState.Success -> {
-                val contents = (uiState as UiState.Success<List<ContentWrapperDto>>).data
-                BrochuresGrid(contents)
+                BrochuresGrid(state.data)
             }
 
             is UiState.Error -> {
                 Text(
-                    text = (uiState as UiState.Error).message
-                        ?: "something went wrong, please try again later",
+                    text = state.message ?: "something went wrong, please try again later",
                     color = Color.Red,
                     modifier = Modifier
                         .align(Alignment.Center)
@@ -79,18 +79,15 @@ fun BrochuresGrid(contents: List<ContentWrapperDto>) {
     val configuration = LocalConfiguration.current
     val columns = if (configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) 3 else 2
 
-    val filteredBrochures = contents.filter {
-        (it.contentType == "brochure" || it.contentType == "brochurePremium") &&
-                (it.content.get(0).distance ?: Double.MAX_VALUE) <= 5.0
-    }
-
     LazyVerticalGrid(
         columns = GridCells.Fixed(columns),
         contentPadding = PaddingValues(16.dp),
         modifier = Modifier.fillMaxSize()
     ) {
         items(
-            items = filteredBrochures,
+            items = contents,
+            // Use a combination of image URL and type as a key for better performance
+            key = { item -> "${item.contentType}_${item.content.firstOrNull()?.brochureImage ?: item.hashCode()}" },
             span = { item ->
                 if (item.contentType == "brochurePremium") {
                     GridItemSpan(columns)
@@ -106,7 +103,8 @@ fun BrochuresGrid(contents: List<ContentWrapperDto>) {
 
 @Composable
 fun BrochureItem(wrapper: ContentWrapperDto) {
-    val brochure = wrapper.content
+    val brochure = wrapper.content.firstOrNull() ?: return
+    
     Card(
         modifier = Modifier
             .padding(8.dp)
@@ -114,8 +112,11 @@ fun BrochureItem(wrapper: ContentWrapperDto) {
     ) {
         Column {
             AsyncImage(
-                model = brochure[0].brochureImage,
-                contentDescription = "",
+                model = ImageRequest.Builder(LocalContext.current)
+                    .data(brochure.brochureImage)
+                    .crossfade(true)
+                    .build(),
+                contentDescription = brochure.publisher?.name ?: "Brochure Image",
                 placeholder = painterResource(id = R.drawable.placeholder_image),
                 error = painterResource(id = R.drawable.placeholder_error),
                 modifier = Modifier
@@ -153,15 +154,6 @@ fun BrochuresGridPreview() {
                         publisher = PublisherDto(
                             name = "Publisher 2"
                         )
-                    )
-                )
-            ),
-            ContentWrapperDto(
-                contentType = "brochure",
-                content = listOf(
-                    BrochureDto(
-                        brochureImage = null,
-                        distance = 2.0,
                     )
                 )
             )

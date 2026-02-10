@@ -19,24 +19,34 @@ class BrochuresViewModel(
     val brochuresUiState = _brochuresUiState.asStateFlow()
 
     fun getBrochures() {
+        // Optimization: Avoid re-fetching if we already have data or are currently loading
+        if (_brochuresUiState.value is UiState.Success || _brochuresUiState.value is UiState.Loading) return
+
         viewModelScope.launch {
             brochuresUseCase().collect { response ->
                 _brochuresUiState.value = when (response) {
                     is Request.Loading -> UiState.Loading
                     is Request.Success -> {
                         val contents = response.data.embedded?.contents ?: emptyList()
+                        
+                        // Filtering logic moved from UI to ViewModel for better performance
+                        val filteredContents = contents.filter { wrapper ->
+                            val isCorrectType = wrapper.contentType == "brochure" || wrapper.contentType == "brochurePremium"
+                            val hasContent = wrapper.content.isNotEmpty()
+                            val isWithinDistance = hasContent && (wrapper.content[0].distance ?: Double.MAX_VALUE) <= 5.0
+                            
+                            isCorrectType && isWithinDistance
+                        }
 
-                        if (contents.isNotEmpty()) {
-                            UiState.Success(contents)
+                        if (filteredContents.isNotEmpty()) {
+                            UiState.Success(filteredContents)
                         } else {
-                            UiState.Error("Brochures response was empty.")
+                            UiState.Error("No brochures found within 5km.")
                         }
                     }
 
                     is Request.Error -> {
-                        UiState.Error(
-                            response.apiError.toErrorMessage()
-                        )
+                        UiState.Error(response.apiError.toErrorMessage())
                     }
                     else -> UiState.Idle
                 }

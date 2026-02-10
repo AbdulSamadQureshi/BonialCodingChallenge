@@ -7,6 +7,10 @@ import com.google.gson.JsonElement
 import com.google.gson.JsonDeserializationContext
 import java.lang.reflect.Type
 
+/**
+ * Deserializer to help with getting one content object which can be an array or a
+ * single object depending upon the content type
+ */
 class ContentWrapperDeserializer : JsonDeserializer<ContentWrapperDto> {
 
     override fun deserialize(
