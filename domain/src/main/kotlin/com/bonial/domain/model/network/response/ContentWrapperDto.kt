@@ -9,5 +9,5 @@ data class ContentWrapperDto(
     @SerializedName("contentType")
     val contentType: String?,
     @SerializedName("content")
-    val content: BrochureDto?
+    val content: List<BrochureDto> = emptyList()
 ) : Parcelable

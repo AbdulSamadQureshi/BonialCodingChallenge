@@ -15,6 +15,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import com.bonial.brochure.presentation.theme.CloseLoopWalletTheme
 import com.bonial.domain.model.network.response.BrochureDto
 import com.bonial.domain.model.network.response.ContentWrapperDto
+import com.bonial.domain.model.network.response.PublisherDto
 import org.koin.androidx.compose.koinViewModel
 
 class BrochuresActivity : ComponentActivity() {
@@ -29,7 +30,6 @@ class BrochuresActivity : ComponentActivity() {
         }
     }
 }
-
 
 
 @Composable
@@ -58,17 +58,27 @@ fun BrochuresActivityPreview() {
                 val mockData = listOf(
                     ContentWrapperDto(
                         contentType = "brochure",
-                        content = BrochureDto(
-                            brochureImage = null,
-                            distance = 0.5,
+                        content = listOf(
+                            BrochureDto(
+                                brochureImage = null,
+                                distance = 0.5,
+                                publisher = PublisherDto(
+                                    name = "Publisher 1"
+                                )
+                            )
                         )
                     ),
                     ContentWrapperDto(
                         contentType = "brochurePremium",
-                        content = BrochureDto(
-                            brochureImage = null,
-                            distance = 1.2,
-                        )
+                        content = listOf(
+                            BrochureDto(
+                                brochureImage = null,
+                                distance = 1.2,
+                                publisher = PublisherDto(
+                                    name = "Publisher 2"
+                                )
+                            )
+                        ),
                     )
                 )
                 BrochuresGrid(contents = mockData)

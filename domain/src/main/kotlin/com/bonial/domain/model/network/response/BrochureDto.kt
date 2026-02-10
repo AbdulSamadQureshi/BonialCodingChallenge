@@ -10,6 +10,8 @@ data class BrochureDto(
     @SerializedName("brochureImage")
     val brochureImage: String? = null,
     @SerializedName("distance")
-    val distance: Double,
+    val distance: Double? = null,
+    @SerializedName("publisher")
+    val publisher: PublisherDto? = null,
 ) : Parcelable
 

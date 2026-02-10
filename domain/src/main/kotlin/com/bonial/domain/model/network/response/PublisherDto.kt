@@ -4,10 +4,10 @@ import android.os.Parcelable
 import com.google.gson.annotations.SerializedName
 import kotlinx.parcelize.Parcelize
 
+
 @Parcelize
-data class BrochureResponseDto(
-    @SerializedName("_embedded")
-    val embedded: EmbeddedDto?,
-    @SerializedName("page")
-    val page: PagedDto?
-): Parcelable
+data class PublisherDto(
+    @SerializedName("name")
+    val name: String,
+) : Parcelable
+

@@ -35,6 +35,7 @@ import com.bonial.brochure.presentation.theme.White
 import com.bonial.brochure.presentation.utils.UiState
 import com.bonial.domain.model.network.response.BrochureDto
 import com.bonial.domain.model.network.response.ContentWrapperDto
+import com.bonial.domain.model.network.response.PublisherDto
 
 @Composable
 fun BrochuresScreen(brochuresViewModel: BrochuresViewModel) {
@@ -44,22 +45,30 @@ fun BrochuresScreen(brochuresViewModel: BrochuresViewModel) {
         brochuresViewModel.getBrochures()
     }
 
-    Box(modifier = Modifier.fillMaxSize().background(White)) {
+    Box(modifier = Modifier
+        .fillMaxSize()
+        .background(White)) {
         when (uiState) {
             is UiState.Loading -> {
                 CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
             }
+
             is UiState.Success -> {
                 val contents = (uiState as UiState.Success<List<ContentWrapperDto>>).data
                 BrochuresGrid(contents)
             }
+
             is UiState.Error -> {
                 Text(
-                    text = (uiState as UiState.Error).message ?: "something went wrong, please try again later",
+                    text = (uiState as UiState.Error).message
+                        ?: "something went wrong, please try again later",
                     color = Color.Red,
-                    modifier = Modifier.align(Alignment.Center).padding(16.dp)
+                    modifier = Modifier
+                        .align(Alignment.Center)
+                        .padding(16.dp)
                 )
             }
+
             else -> {}
         }
     }
@@ -72,7 +81,7 @@ fun BrochuresGrid(contents: List<ContentWrapperDto>) {
 
     val filteredBrochures = contents.filter {
         (it.contentType == "brochure" || it.contentType == "brochurePremium") &&
-                (it.content?.distance ?: Double.MAX_VALUE) <= 5.0
+                (it.content.get(0).distance ?: Double.MAX_VALUE) <= 5.0
     }
 
     LazyVerticalGrid(
@@ -105,7 +114,7 @@ fun BrochureItem(wrapper: ContentWrapperDto) {
     ) {
         Column {
             AsyncImage(
-                model = brochure?.brochureImage,
+                model = brochure[0].brochureImage,
                 contentDescription = "",
                 placeholder = painterResource(id = R.drawable.placeholder_image),
                 error = painterResource(id = R.drawable.placeholder_error),
@@ -125,23 +134,35 @@ fun BrochuresGridPreview() {
         val mockData = listOf(
             ContentWrapperDto(
                 contentType = "brochure",
-                content = BrochureDto(
-                    brochureImage = null,
-                    distance = 0.5,
+                content = listOf(
+                    BrochureDto(
+                        brochureImage = null,
+                        distance = 0.5,
+                        publisher = PublisherDto(
+                            name = "Publisher 1"
+                        )
+                    )
                 )
             ),
             ContentWrapperDto(
                 contentType = "brochurePremium",
-                content = BrochureDto(
-                    brochureImage = null,
-                    distance = 1.2,
+                content = listOf(
+                    BrochureDto(
+                        brochureImage = null,
+                        distance = 1.2,
+                        publisher = PublisherDto(
+                            name = "Publisher 2"
+                        )
+                    )
                 )
             ),
             ContentWrapperDto(
                 contentType = "brochure",
-                content = BrochureDto(
-                    brochureImage = null,
-                    distance = 2.0,
+                content = listOf(
+                    BrochureDto(
+                        brochureImage = null,
+                        distance = 2.0,
+                    )
                 )
             )
         )
