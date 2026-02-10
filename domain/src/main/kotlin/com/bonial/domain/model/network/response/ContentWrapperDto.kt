@@ -1,0 +1,13 @@
+package com.bonial.domain.model.network.response
+
+import android.os.Parcelable
+import com.google.gson.annotations.SerializedName
+import kotlinx.parcelize.Parcelize
+
+@Parcelize
+data class ContentWrapperDto(
+    @SerializedName("contentType")
+    val contentType: String? = null,
+    @SerializedName("content")
+    val content: BrochureDto? = null
+) : Parcelable
