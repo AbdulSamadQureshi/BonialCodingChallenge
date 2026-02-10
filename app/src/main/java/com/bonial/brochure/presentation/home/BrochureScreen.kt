@@ -105,10 +105,10 @@ fun BrochureItem(wrapper: ContentWrapperDto) {
     ) {
         Column {
             AsyncImage(
-                model = brochure.brochureImage,
+                model = brochure?.brochureImage,
                 contentDescription = "",
-                placeholder = painterResource(id = R.drawable.ic_launcher_background),
-                error = painterResource(id = R.drawable.ic_launcher_background),
+                placeholder = painterResource(id = R.drawable.placeholder_image),
+                error = painterResource(id = R.drawable.placeholder_error),
                 modifier = Modifier
                     .fillMaxWidth()
                     .aspectRatio(0.7f),

@@ -24,11 +24,15 @@ class BrochuresViewModel(
                 _brochuresUiState.value = when (response) {
                     is Request.Loading -> UiState.Loading
                     is Request.Success -> {
-                        val brochures = response.data.data?.filterNotNull()
-                        if (response.data.success && brochures != null) {
+                        val brochures = response.data.embedded?.contents
+                            ?.filter { it.contentType == "brochure" }
+                            ?.mapNotNull { it.content }
+                            ?: emptyList()
+                        
+                        if (brochures.isNotEmpty()) {
                             UiState.Success(brochures)
                         } else {
-                            UiState.Error(response.data.error.toErrorMessage(response.data.message ?: "Offers response was empty."))
+                            UiState.Error("Brochures response was empty.")
                         }
                     }
 
