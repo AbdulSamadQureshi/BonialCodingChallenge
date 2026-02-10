@@ -10,20 +10,22 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import com.bonial.brochure.presentation.theme.CloseLoopWalletTheme
+import com.bonial.domain.model.network.response.BrochureDto
+import com.bonial.domain.model.network.response.ContentWrapperDto
+import com.bonial.domain.model.network.response.PublisherDto
 import org.koin.androidx.compose.koinViewModel
 
-class BrouchersActivity : ComponentActivity() {
+class BrochuresActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
             CloseLoopWalletTheme {
                 val brochuresViewModel: BrochuresViewModel = koinViewModel()
-                BrochuresUi(brochuresViewModel)
+                BrochuresScreen(brochuresViewModel)
             }
         }
     }
@@ -32,7 +34,7 @@ class BrouchersActivity : ComponentActivity() {
 
 
 @Composable
-fun BrouchersActivityContent(
+fun BrochuresActivityContent(
     screenContent: @Composable () -> Unit
 ) {
     Scaffold(
@@ -50,16 +52,33 @@ fun BrouchersActivityContent(
 
 @Preview(showBackground = true)
 @Composable
-fun BrouchersActivityPreview() {
+fun BrochuresActivityPreview() {
     CloseLoopWalletTheme {
-        BrouchersActivityContent(
+        BrochuresActivityContent(
             screenContent = {
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    HomeContentPreview()
-                }
+                val mockData = listOf(
+                    ContentWrapperDto(
+                        contentType = "brochure",
+                        content = BrochureDto(
+                            id = 1,
+                            title = "Lidl Brochure",
+                            brochureImage = null,
+                            distance = 0.5,
+                            publisher = PublisherDto(name = "Lidl")
+                        )
+                    ),
+                    ContentWrapperDto(
+                        contentType = "brochurePremium",
+                        content = BrochureDto(
+                            id = 2,
+                            title = "REWE Premium",
+                            brochureImage = null,
+                            distance = 1.2,
+                            publisher = PublisherDto(name = "REWE")
+                        )
+                    )
+                )
+                BrochuresGrid(contents = mockData)
             }
         )
     }

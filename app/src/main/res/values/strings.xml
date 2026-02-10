@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Brouchers</string>
+    <string name="app_name">Brochures</string>
     <string name="enter_you_phone_number_to_continue">Enter your Phone Number to continue</string>
     <string name="phone_number">Phone Number</string>
     <string name="get_started">Get started</string>
