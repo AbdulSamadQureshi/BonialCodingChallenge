@@ -7,10 +7,8 @@ import kotlinx.parcelize.Parcelize
 
 @Parcelize
 data class BrochureDto(
-    @SerializedName("title")
-    val title: String,
     @SerializedName("brochureImage")
-    val brochureImage: String,
+    val brochureImage: String? = null,
     @SerializedName("distance")
     val distance: Double,
 ) : Parcelable

@@ -15,7 +15,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import com.bonial.brochure.presentation.theme.CloseLoopWalletTheme
 import com.bonial.domain.model.network.response.BrochureDto
 import com.bonial.domain.model.network.response.ContentWrapperDto
-import com.bonial.domain.model.network.response.PublisherDto
 import org.koin.androidx.compose.koinViewModel
 
 class BrochuresActivity : ComponentActivity() {
@@ -60,21 +59,15 @@ fun BrochuresActivityPreview() {
                     ContentWrapperDto(
                         contentType = "brochure",
                         content = BrochureDto(
-                            id = 1,
-                            title = "Lidl Brochure",
                             brochureImage = null,
                             distance = 0.5,
-                            publisher = PublisherDto(name = "Lidl")
                         )
                     ),
                     ContentWrapperDto(
                         contentType = "brochurePremium",
                         content = BrochureDto(
-                            id = 2,
-                            title = "REWE Premium",
                             brochureImage = null,
                             distance = 1.2,
-                            publisher = PublisherDto(name = "REWE")
                         )
                     )
                 )

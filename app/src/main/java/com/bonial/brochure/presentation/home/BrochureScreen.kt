@@ -26,11 +26,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.bonial.brochure.R
 import com.bonial.brochure.presentation.theme.CloseLoopWalletTheme
@@ -108,8 +105,8 @@ fun BrochureItem(wrapper: ContentWrapperDto) {
     ) {
         Column {
             AsyncImage(
-                model = brochure?.brochureImage,
-                contentDescription = brochure?.title,
+                model = brochure.brochureImage,
+                contentDescription = "",
                 placeholder = painterResource(id = R.drawable.ic_launcher_background),
                 error = painterResource(id = R.drawable.ic_launcher_background),
                 modifier = Modifier
@@ -117,23 +114,6 @@ fun BrochureItem(wrapper: ContentWrapperDto) {
                     .aspectRatio(0.7f),
                 contentScale = ContentScale.Crop
             )
-            Column(modifier = Modifier.padding(8.dp)) {
-                Text(
-                    text = brochure?.publisher?.name ?: "Unknown Retailer",
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 14.sp,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
-                brochure?.title?.let {
-                    Text(
-                        text = it,
-                        fontSize = 12.sp,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
-                    )
-                }
-            }
         }
     }
 }
@@ -146,31 +126,22 @@ fun BrochuresGridPreview() {
             ContentWrapperDto(
                 contentType = "brochure",
                 content = BrochureDto(
-                    id = 1,
-                    title = "Lidl Brochure",
                     brochureImage = null,
                     distance = 0.5,
-                    publisher = PublisherDto(name = "Lidl")
                 )
             ),
             ContentWrapperDto(
                 contentType = "brochurePremium",
                 content = BrochureDto(
-                    id = 2,
-                    title = "REWE Premium",
                     brochureImage = null,
                     distance = 1.2,
-                    publisher = PublisherDto(name = "REWE")
                 )
             ),
             ContentWrapperDto(
                 contentType = "brochure",
                 content = BrochureDto(
-                    id = 3,
-                    title = "Aldi Brochure",
                     brochureImage = null,
                     distance = 2.0,
-                    publisher = PublisherDto(name = "Aldi")
                 )
             )
         )

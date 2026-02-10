@@ -7,7 +7,7 @@ import kotlinx.parcelize.Parcelize
 @Parcelize
 data class ContentWrapperDto(
     @SerializedName("contentType")
-    val contentType: String? = null,
+    val contentType: String,
     @SerializedName("content")
-    val content: BrochureDto? = null
+    val content: BrochureDto
 ) : Parcelable
