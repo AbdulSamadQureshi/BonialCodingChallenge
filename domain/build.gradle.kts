@@ -9,6 +9,7 @@ kotlin {
 
 dependencies {
     implementation(libs.koin.core)
-    implementation(libs.ktor.serialization.kotlinx.json)
+    implementation(libs.kotlinx.serialization.json)
+    implementation(libs.kotlinx.coroutines.core)
     testImplementation(libs.junit)
 }

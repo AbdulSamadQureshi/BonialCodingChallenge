@@ -8,7 +8,7 @@ plugins {
 }
 
 android {
-    namespace = "com.rabbah.clw"
+    namespace = "com.bonial.brochure"
     compileSdk {
         version = release(36)
     }
@@ -39,7 +39,7 @@ android {
     }
 
     defaultConfig {
-        applicationId = "com.rabbah.clw"
+        applicationId = "com.bonial.brochure"
         minSdk = 25
         targetSdk = 36
         versionCode = 1
@@ -147,8 +147,6 @@ dependencies {
     implementation(libs.androidx.compose.material3.adaptive.navigation.suite)
     implementation(libs.koin.android)
     implementation(libs.koin.androidx.compose)
-    implementation(libs.accompanist.permissions)
-    implementation(libs.play.services.location)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -156,6 +154,4 @@ dependencies {
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)
     debugImplementation(libs.androidx.compose.ui.tooling)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
-    implementation(libs.ramani.maplibre)
-    implementation(libs.maplibre.android.sdk)
 }

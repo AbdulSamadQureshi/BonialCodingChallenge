@@ -4,7 +4,7 @@ plugins {
 }
 
 android {
-    namespace = "com.rabbah.data"
+    namespace = "com.bonial.data"
     compileSdk = 36
 
     defaultConfig {

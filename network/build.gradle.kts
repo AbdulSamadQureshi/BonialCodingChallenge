@@ -1,10 +1,11 @@
 plugins {
-    id("com.android.library")
-    id("org.jetbrains.kotlin.android")
+    alias(libs.plugins.android.library)
+    alias(libs.plugins.kotlin.android)
+    alias(libs.plugins.kotlin.serialization)
 }
 
 android {
-    namespace = "com.rabbah.network"
+    namespace = "com.bonial.network"
     compileSdk = 36
 
     defaultConfig {
@@ -23,11 +24,12 @@ android {
 
 dependencies {
     implementation(project(":core"))
-    api(libs.ktor.client.core)
-    api(libs.ktor.client.cio)
-    api(libs.ktor.client.content.negotiation)
-    api(libs.ktor.serialization.kotlinx.json)
-    api(libs.ktor.client.logging)
+    
+    // Retrofit
+    api(libs.retrofit.core)
+    api(libs.retrofit.kotlin.serialization)
+    api(libs.okhttp.logging)
+    
     implementation(libs.koin.core)
-    api(libs.ktor.client.mock)
+    implementation(libs.kotlinx.serialization.json)
 }

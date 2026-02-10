@@ -4,7 +4,7 @@ plugins {
 }
 
 android {
-    namespace = "com.rabbah.core"
+    namespace = "com.bonial.core"
     compileSdk = 36
 
     defaultConfig {
