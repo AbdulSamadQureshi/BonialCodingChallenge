@@ -4,7 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.bonial.brochure.presentation.utils.UiState
 import com.bonial.brochure.presentation.utils.toErrorMessage
-import com.bonial.domain.model.network.response.BrochureDto
+import com.bonial.domain.model.network.response.ContentWrapperDto
 import com.bonial.domain.model.network.response.Request
 import com.bonial.domain.useCase.brochures.BrochuresUseCase
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -15,7 +15,7 @@ class BrochuresViewModel(
     private val brochuresUseCase: BrochuresUseCase,
 ) : ViewModel() {
 
-    private val _brochuresUiState = MutableStateFlow<UiState<List<BrochureDto>>>(UiState.Idle)
+    private val _brochuresUiState = MutableStateFlow<UiState<List<ContentWrapperDto>>>(UiState.Idle)
     val brochuresUiState = _brochuresUiState.asStateFlow()
 
     fun getBrochures() {
@@ -24,13 +24,10 @@ class BrochuresViewModel(
                 _brochuresUiState.value = when (response) {
                     is Request.Loading -> UiState.Loading
                     is Request.Success -> {
-                        val brochures = response.data.embedded?.contents
-                            ?.filter { it.contentType == "brochure" }
-                            ?.mapNotNull { it.content }
-                            ?: emptyList()
-                        
-                        if (brochures.isNotEmpty()) {
-                            UiState.Success(brochures)
+                        val contents = response.data.embedded?.contents ?: emptyList()
+
+                        if (contents.isNotEmpty()) {
+                            UiState.Success(contents)
                         } else {
                             UiState.Error("Brochures response was empty.")
                         }
@@ -41,6 +38,7 @@ class BrochuresViewModel(
                             response.apiError.toErrorMessage()
                         )
                     }
+                    else -> UiState.Idle
                 }
             }
         }
