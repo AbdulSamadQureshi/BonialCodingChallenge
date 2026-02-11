@@ -1,10 +1,10 @@
 # Bonial Coding Challenge - Brochure App
 
-This project is an Android application that displays brochures using a modern, multi-module Clean Architecture approach. It demonstrates best practices in Android development, including Jetpack Compose for UI, Koin for dependency injection, and a robust networking layer.
+This project is an Android application that displays brochures using a modern, multi-module Clean Architecture approach. It demonstrates best practices in Android development, including Jetpack Compose for UI, Koin for dependency injection, and a networking layer (Retrofit).
 
 ## Project Structure
 
-The project follows **Clean Architecture** principles and is divided into several modules to ensure separation of concerns, scalability, and testability.
+The project follows ** MVVM Clean Architecture** principles and is divided into several modules (app, data, domain, network, core) to ensure separation of concerns, scalability, and testability.
 
 ### Modules
 
