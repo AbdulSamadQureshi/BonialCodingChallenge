@@ -41,7 +41,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
@@ -69,6 +69,7 @@ fun BrochuresScreen(brochuresViewModel: BrochuresViewModel) {
 
     Box(modifier = Modifier
         .fillMaxSize()
+        .testTag("brochure_screen")
         .background(White)) {
         when (val state = uiState) {
             is UiState.Loading -> {
@@ -118,7 +119,7 @@ fun BrochuresGrid(contents: List<ContentWrapperDto>) {
     LazyVerticalGrid(
         columns = GridCells.Fixed(columns),
         contentPadding = PaddingValues(16.dp),
-        modifier = Modifier.fillMaxSize()
+        modifier = Modifier.fillMaxSize().testTag("brochures_grid")
     ) {
         items(
             items = contents,
@@ -146,6 +147,7 @@ fun BrochureItem(wrapper: ContentWrapperDto) {
         modifier = Modifier
             .padding(8.dp)
             .fillMaxWidth()
+            .testTag("brochure_item_${wrapper.contentType}")
     ) {
         Box(modifier = Modifier.fillMaxWidth().aspectRatio(0.7f)) {
             AsyncImage(
