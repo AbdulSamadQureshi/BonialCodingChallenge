@@ -23,7 +23,7 @@ class ContentWrapperDeserializer : JsonDeserializer<ContentWrapperDto> {
 
         val contentType = obj.get("contentType")?.asString
 
-        // 🔴 filter unwanted content types early
+        //  filter unwanted content types early
         if (contentType != "brochure" && contentType != "brochurePremium") {
             return ContentWrapperDto(
                 contentType = contentType,
