@@ -1,6 +1,8 @@
 package com.bonial.brochure.presentation.home
 
+import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.bonial.brochure.presentation.theme.CloseLoopWalletTheme
@@ -45,5 +47,28 @@ class BrochuresGridTest {
         // Assert that the premium item is significantly wider than the simple one
         // A simple ratio check confirms the span difference (e.g., premium is at least 1.5x wider)
         assert(premiumItemWidth > simpleItemWidth * 1.5f)
+    }
+
+    @Test
+    fun brochureItem_displaysPlaceholder_when_imageError() {
+        val brochureWithNoImage = ContentWrapperDto(
+            contentType = "brochure",
+            content = listOf(BrochureDto(title = "No Image Brochure", brochureImage = null))
+        )
+
+        composeTestRule.setContent {
+            CloseLoopWalletTheme {
+                BrochureItem(wrapper = brochureWithNoImage)
+            }
+        }
+
+        // The onState callback for AsyncImage is asynchronous.
+        // We may need to wait for the state to settle.
+        composeTestRule.waitUntil(timeoutMillis = 5000) {
+            composeTestRule.onAllNodesWithTag("error_placeholder").fetchSemanticsNodes().isNotEmpty()
+        }
+
+        // Assert that the placeholder is displayed
+        composeTestRule.onNodeWithTag("error_placeholder").assertIsDisplayed()
     }
 }
