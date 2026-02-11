@@ -1,35 +1,53 @@
 package com.bonial.brochure.presentation.home
 
 import android.content.res.Configuration
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.material3.Card
-import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.composed
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
+import coil.compose.AsyncImagePainter
 import coil.request.ImageRequest
 import com.bonial.brochure.R
 import com.bonial.brochure.presentation.theme.CloseLoopWalletTheme
@@ -52,7 +70,7 @@ fun BrochuresScreen(brochuresViewModel: BrochuresViewModel) {
         .background(White)) {
         when (val state = uiState) {
             is UiState.Loading -> {
-                CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+                BrochuresLoadingGrid()
             }
 
             is UiState.Success -> {
@@ -75,6 +93,22 @@ fun BrochuresScreen(brochuresViewModel: BrochuresViewModel) {
 }
 
 @Composable
+fun BrochuresLoadingGrid() {
+    val configuration = LocalConfiguration.current
+    val columns = if (configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) 3 else 2
+
+    LazyVerticalGrid(
+        columns = GridCells.Fixed(columns),
+        contentPadding = PaddingValues(16.dp),
+        modifier = Modifier.fillMaxSize()
+    ) {
+        items(10) {
+            BrochureShimmerItem()
+        }
+    }
+}
+
+@Composable
 fun BrochuresGrid(contents: List<ContentWrapperDto>) {
     val configuration = LocalConfiguration.current
     val columns = if (configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) 3 else 2
@@ -86,7 +120,6 @@ fun BrochuresGrid(contents: List<ContentWrapperDto>) {
     ) {
         items(
             items = contents,
-            // Use a combination of image URL and type as a key for better performance
             key = { item -> "${item.contentType}_${item.content.firstOrNull()?.brochureImage ?: item.hashCode()}" },
             span = { item ->
                 if (item.contentType == "brochurePremium") {
@@ -104,28 +137,121 @@ fun BrochuresGrid(contents: List<ContentWrapperDto>) {
 @Composable
 fun BrochureItem(wrapper: ContentWrapperDto) {
     val brochure = wrapper.content.firstOrNull() ?: return
-    
+    var isLoading by remember { mutableStateOf(true) }
+    var isError by remember { mutableStateOf(false) }
+
     Card(
         modifier = Modifier
             .padding(8.dp)
             .fillMaxWidth()
     ) {
-        Column {
+        Box {
             AsyncImage(
                 model = ImageRequest.Builder(LocalContext.current)
                     .data(brochure.brochureImage)
                     .crossfade(true)
                     .build(),
                 contentDescription = brochure.publisher?.name ?: "Brochure Image",
-                placeholder = painterResource(id = R.drawable.placeholder_image),
-                error = painterResource(id = R.drawable.placeholder_error),
+                onState = { state ->
+                    isLoading = state is AsyncImagePainter.State.Loading
+                    isError = state is AsyncImagePainter.State.Error
+                },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .aspectRatio(0.7f),
-                contentScale = ContentScale.Crop
+                    .aspectRatio(0.7f)
+                    .then(if (isLoading) Modifier.shimmerEffect() else Modifier),
+                contentScale = if (isError) ContentScale.Fit else ContentScale.Crop
             )
+
+            if (isError) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .aspectRatio(0.7f)
+                        .background(Color.LightGray.copy(alpha = 0.3f)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        AsyncImage(
+                            model = R.drawable.placeholder_error,
+                            contentDescription = null,
+                            modifier = Modifier.fillMaxWidth(0.3f)
+                        )
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(text = "Failed to load", fontSize = 10.sp, color = Color.Gray)
+                    }
+                }
+            }
+
+            // Title Overlay
+            if (!brochure.title.isNullOrBlank() && !isLoading && !isError) {
+                Box(
+                    modifier = Modifier
+                        .align(Alignment.BottomStart)
+                        .fillMaxWidth()
+                        .background(
+                            Brush.verticalGradient(
+                                colors = listOf(Color.Transparent, Color.Black.copy(alpha = 0.7f)),
+                                startY = 0f
+                            )
+                        )
+                        .padding(top = 16.dp, start = 8.dp, end = 8.dp, bottom = 8.dp)
+                ) {
+                    Text(
+                        text = brochure.title!!,
+                        color = Color.White,
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Bold,
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
+            }
         }
     }
+}
+
+@Composable
+fun BrochureShimmerItem() {
+    Card(
+        modifier = Modifier
+            .padding(8.dp)
+            .fillMaxWidth()
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .aspectRatio(0.7f)
+                .shimmerEffect()
+        )
+    }
+}
+
+fun Modifier.shimmerEffect(): Modifier = composed {
+    val transition = rememberInfiniteTransition(label = "shimmer")
+    val translateAnim by transition.animateFloat(
+        initialValue = 0f,
+        targetValue = 1000f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(durationMillis = 1200, easing = LinearEasing),
+            repeatMode = RepeatMode.Restart
+        ),
+        label = "shimmerTranslate"
+    )
+
+    val shimmerColors = listOf(
+        Color.LightGray.copy(alpha = 0.6f),
+        Color.LightGray.copy(alpha = 0.2f),
+        Color.LightGray.copy(alpha = 0.6f),
+    )
+
+    val brush = Brush.linearGradient(
+        colors = shimmerColors,
+        start = Offset.Zero,
+        end = Offset(x = translateAnim, y = translateAnim)
+    )
+
+    background(brush)
 }
 
 @Preview(showBackground = true)
@@ -137,6 +263,7 @@ fun BrochuresGridPreview() {
                 contentType = "brochure",
                 content = listOf(
                     BrochureDto(
+                        title = "Veganuary Rezepte",
                         brochureImage = null,
                         distance = 0.5,
                         publisher = PublisherDto(
@@ -149,6 +276,7 @@ fun BrochuresGridPreview() {
                 contentType = "brochurePremium",
                 content = listOf(
                     BrochureDto(
+                        title = "Premium Offer",
                         brochureImage = null,
                         distance = 1.2,
                         publisher = PublisherDto(
