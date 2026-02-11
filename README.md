@@ -1,10 +1,10 @@
 # Bonial Coding Challenge - Brochure App
 
-This project is an Android application that displays brochures using a modern, multi-module Clean Architecture approach. It demonstrates best practices in Android development, including Jetpack Compose for UI, Koin for dependency injection, and a networking layer (Retrofit).
+This project is an Android application that displays brochures using a modern, multi-module Clean Architecture approach. It demonstrates best practices in Android development, including Jetpack Compose for UI, Koin for dependency injection, and a robust networking layer.
 
 ## Project Structure
 
-The project follows ** MVVM Clean Architecture** principles and is divided into several modules (app, data, domain, network, core) to ensure separation of concerns, scalability, and testability.
+The project follows **Clean Architecture** principles and is divided into several modules (app, data, domain, network, core) to ensure separation of concerns, scalability, and testability.
 
 ### Modules
 
@@ -32,10 +32,36 @@ The project follows ** MVVM Clean Architecture** principles and is divided into 
 - **Serialization**: Gson
 - **Image Loading**: Coil
 - **Testing**:
-    - **Unit Testing**: JUnit 4, Mockito-Kotlin
-    - **Assertions**: Google Truth
-    - **Flow Testing**: Turbine
-    - **UI Testing**: Compose UI Test
+    - **Unit Testing**: JUnit 4, Mockito-Kotlin, Google Truth, Turbine
+    - **UI Testing**: Jetpack Compose UI Test Framework
+
+## Testing
+
+The project has a comprehensive suite of unit and UI tests.
+
+### Unit Tests
+Unit tests are in place for critical components, including:
+- **`SharedPrefsManager`**: Verifies local storage logic.
+- **`safeApiCall`**: Ensures correct `Flow` emissions for network states.
+- **`ContentWrapperDeserializer`**: Confirms custom JSON parsing logic.
+- **`BrochuresViewModel`**: Tests business logic, including filtering by distance and content type.
+
+To run all unit tests, execute:
+```bash
+./gradlew test
+```
+
+### UI Tests (Espresso & Compose)
+UI tests are implemented to verify the visual components and their behavior.
+- **`BrochureScreenTest`**: Ensures the main screen launches and successfully displays the brochure grid after data is loaded.
+- **`BrochuresGridTest`**: Contains isolated tests for the grid's UI logic:
+    - Verifies that "premium" brochures span the full grid width while "simple" brochures occupy a single column.
+    - Confirms that a placeholder image is displayed when a brochure image fails to load.
+
+To run the instrumentation tests, execute:
+```bash
+./gradlew connectedAndroidTest
+```
 
 ## Build Variants
 
@@ -46,16 +72,12 @@ The project supports multiple environments through Gradle build types:
 - **`staging`**: Pre-production environment.
 - **`release`**: Production-ready build with obfuscation and optimizations.
 
-## Note
-**Environment Configuration**: The app uses `.properties` files (e.g., `staging.properties`, `qa.properties`) to manage environment-specific variables like `BASE_URL`.
+**Note**: The app uses `.properties` files (e.g., `staging.properties`, `qa.properties`) to manage environment-specific variables like `BASE_URL`.
 
-## Testing
+## Future Updates
 
-To run the unit tests across all modules, execute:
-```bash
-./gradlew test
-```
-To run tests for a specific module (e.g., `:domain`):
-```bash
-./gradlew :domain:test
-```
+Several enhancements are planned to further modernize the codebase:
+
+1.  **Migrate to Hilt for Dependency Injection**: Replace Koin with Hilt. While Koin is effective, Hilt offers better integration with the Jetpack ecosystem, improved tooling, and compile-time safety, reducing the chance of runtime errors. This was deferred due to initial time constraints.
+
+2.  **Replace SharedPreferences with Jetpack DataStore**: The custom `SharedPrefsManager` will be migrated to Jetpack's **Preferences DataStore**. This provides a more robust and modern solution for simple key-value storage with the benefits of an asynchronous, transactional API using Kotlin Coroutines and Flow.
