@@ -29,13 +29,18 @@ class BrochuresViewModel(
                     is Request.Success -> {
                         val contents = response.data.embedded?.contents ?: emptyList()
                         
-                        // Filtering logic moved from UI to ViewModel for better performance
-                        val filteredContents = contents.filter { wrapper ->
+                        // Filtering logic:
+                        // 1. Keep only brochures with distance < 5.0
+                        // 2. Filter out wrappers that become empty or have unwanted types
+                        val filteredContents = contents.map { wrapper ->
+                            wrapper.copy(
+                                content = wrapper.content.filter { brochure ->
+                                    (brochure.distance ?: Double.MAX_VALUE) < 5.0
+                                }
+                            )
+                        }.filter { wrapper ->
                             val isCorrectType = wrapper.contentType == "brochure" || wrapper.contentType == "brochurePremium"
-                            val hasContent = wrapper.content.isNotEmpty()
-                            val isWithinDistance = hasContent && (wrapper.content[0].distance ?: Double.MAX_VALUE) <= 5.0
-                            
-                            isCorrectType && isWithinDistance
+                            isCorrectType && wrapper.content.isNotEmpty()
                         }
 
                         if (filteredContents.isNotEmpty()) {
@@ -48,7 +53,6 @@ class BrochuresViewModel(
                     is Request.Error -> {
                         UiState.Error(response.apiError.toErrorMessage())
                     }
-                    else -> UiState.Idle
                 }
             }
         }

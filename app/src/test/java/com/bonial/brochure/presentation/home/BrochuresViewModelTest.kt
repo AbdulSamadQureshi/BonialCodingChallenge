@@ -65,6 +65,62 @@ class BrochuresViewModelTest {
     }
 
     @Test
+    fun `getBrochures should filter by distance and content type`() = runTest {
+        // Given
+        val closeBrochure1 = BrochureDto(title = "Close Brochure 1", distance = 1.0) // Keep
+        val farBrochure = BrochureDto(title = "Far Brochure", distance = 6.0) // Filter out
+        val closeBrochure2 = BrochureDto(title = "Close Premium Brochure", distance = 0.5) // Keep
+        val boundaryBrochure = BrochureDto(title = "Boundary Brochure", distance = 5.0) // Filter out
+        val nullDistanceBrochure = BrochureDto(title = "Null Distance Brochure", distance = null) // Filter out
+
+        // This wrapper contains one brochure to keep and two to filter out
+        val mixedContentWrapper = ContentWrapperDto(contentType = "brochure", content = listOf(closeBrochure1, farBrochure, nullDistanceBrochure))
+        
+        val premiumContentWrapper = ContentWrapperDto(contentType = "brochurePremium", content = listOf(closeBrochure2))
+
+        // This wrapper has an unwanted content type, so its content is already empty from deserialization
+        val emptyContentWrapper = ContentWrapperDto(contentType = "other_type", content = emptyList())
+        
+        // This wrapper only contains a far brochure, so it should be filtered out entirely after distance filtering
+        val farOnlyWrapper = ContentWrapperDto(contentType = "brochure", content = listOf(boundaryBrochure))
+
+
+        val contents = listOf(mixedContentWrapper, emptyContentWrapper, premiumContentWrapper, farOnlyWrapper)
+        val responseDto = BrochureResponseDto(embedded = EmbeddedDto(contents = contents), page = null)
+
+        whenever(brochuresUseCase.invoke(anyOrNull())).thenReturn(flowOf(Request.Success(responseDto)))
+
+        // When
+        viewModel.getBrochures()
+        testDispatcher.scheduler.advanceUntilIdle()
+
+        // Then
+        viewModel.brochuresUiState.test {
+            val state = awaitItem()
+            assertThat(state).isInstanceOf(UiState.Success::class.java)
+            val data = (state as UiState.Success).data
+
+            // Assert that wrappers with no valid brochures are removed.
+            // `mixedContentWrapper` should be present (but with filtered content).
+            // `premiumContentWrapper` should be present.
+            // `emptyContentWrapper` and `farOnlyWrapper` should be removed.
+            assertThat(data).hasSize(2)
+            
+            // Get all brochures from the successful wrappers
+            val allReturnedBrochures = data.flatMap { it.content }
+
+            // Assert that the total number of brochures is correct
+            assertThat(allReturnedBrochures).hasSize(2)
+            
+            // Assert that only close brochures are present
+            assertThat(allReturnedBrochures.all { (it.distance ?: Double.MAX_VALUE) < 5.0 }).isTrue()
+            
+            // Assert that specific brochures are present
+            assertThat(allReturnedBrochures).containsExactly(closeBrochure1, closeBrochure2)
+        }
+    }
+
+    @Test
     fun `getBrochures should update UI state to Error when use case returns error`() = runTest {
         // Given
         whenever(brochuresUseCase.invoke(anyOrNull())).thenReturn(flowOf(Request.Error(ApiError(code = "error", message = "Error"))))
