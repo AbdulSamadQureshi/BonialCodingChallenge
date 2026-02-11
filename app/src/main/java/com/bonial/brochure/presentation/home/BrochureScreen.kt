@@ -17,12 +17,12 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.material3.Card
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -38,12 +38,14 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
@@ -145,7 +147,7 @@ fun BrochureItem(wrapper: ContentWrapperDto) {
             .padding(8.dp)
             .fillMaxWidth()
     ) {
-        Box {
+        Box(modifier = Modifier.fillMaxWidth().aspectRatio(0.7f)) {
             AsyncImage(
                 model = ImageRequest.Builder(LocalContext.current)
                     .data(brochure.brochureImage)
@@ -156,29 +158,35 @@ fun BrochureItem(wrapper: ContentWrapperDto) {
                     isLoading = state is AsyncImagePainter.State.Loading
                     isError = state is AsyncImagePainter.State.Error
                 },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .aspectRatio(0.7f)
-                    .then(if (isLoading) Modifier.shimmerEffect() else Modifier),
-                contentScale = if (isError) ContentScale.Fit else ContentScale.Crop
+                modifier = Modifier.fillMaxSize(),
+                contentScale = ContentScale.Crop
             )
+
+            if (isLoading) {
+                Box(modifier = Modifier.fillMaxSize().shimmerEffect())
+            }
 
             if (isError) {
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
-                        .aspectRatio(0.7f)
-                        .background(Color.LightGray.copy(alpha = 0.3f)),
+                        .background(Color.LightGray.copy(alpha = 0.2f)),
                     contentAlignment = Alignment.Center
                 ) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         AsyncImage(
                             model = R.drawable.placeholder_error,
                             contentDescription = null,
-                            modifier = Modifier.fillMaxWidth(0.3f)
+                            modifier = Modifier.size(48.dp),
+                            contentScale = ContentScale.Fit
                         )
-                        Spacer(modifier = Modifier.height(4.dp))
-                        Text(text = "Failed to load", fontSize = 10.sp, color = Color.Gray)
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(
+                            text = "Image unavailable",
+                            fontSize = 12.sp,
+                            color = Color.Gray,
+                            fontWeight = FontWeight.Medium
+                        )
                     }
                 }
             }
@@ -228,30 +236,30 @@ fun BrochureShimmerItem() {
 }
 
 fun Modifier.shimmerEffect(): Modifier = composed {
+    var size by remember { mutableStateOf(IntSize.Zero) }
     val transition = rememberInfiniteTransition(label = "shimmer")
-    val translateAnim by transition.animateFloat(
-        initialValue = 0f,
-        targetValue = 1000f,
+    val startOffsetX by transition.animateFloat(
+        initialValue = -2 * size.width.toFloat(),
+        targetValue = 2 * size.width.toFloat(),
         animationSpec = infiniteRepeatable(
-            animation = tween(durationMillis = 1200, easing = LinearEasing),
-            repeatMode = RepeatMode.Restart
+            animation = tween(1200, easing = LinearEasing)
         ),
-        label = "shimmerTranslate"
+        label = "shimmer"
     )
 
-    val shimmerColors = listOf(
-        Color.LightGray.copy(alpha = 0.6f),
-        Color.LightGray.copy(alpha = 0.2f),
-        Color.LightGray.copy(alpha = 0.6f),
-    )
-
-    val brush = Brush.linearGradient(
-        colors = shimmerColors,
-        start = Offset.Zero,
-        end = Offset(x = translateAnim, y = translateAnim)
-    )
-
-    background(brush)
+    background(
+        brush = Brush.linearGradient(
+            colors = listOf(
+                Color(0xFFEBEBEB),
+                Color(0xFFD6D6D6),
+                Color(0xFFEBEBEB),
+            ),
+            start = Offset(startOffsetX, 0f),
+            end = Offset(startOffsetX + size.width.toFloat(), size.height.toFloat())
+        )
+    ).onGloballyPositioned {
+        size = it.size
+    }
 }
 
 @Preview(showBackground = true)
