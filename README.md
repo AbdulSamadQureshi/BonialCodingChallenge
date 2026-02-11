@@ -16,7 +16,51 @@ The project follows **Clean Architecture** principles and is divided into severa
 
 ## Architecture & Interaction
 
-1.  **UI (`:app`)** calls a **Use Case (`:domain`)**.
+The following diagram illustrates the interaction between modules and the flow of data:
+
+```mermaid
+graph TD
+    subgraph ":app Module (Presentation)"
+        UI[Compose UI]
+        VM[ViewModel]
+    end
+
+    subgraph ":domain Module (Business Logic)"
+        UC[Use Case]
+        RI[Repository Interface]
+        DM[Domain Model]
+    end
+
+    subgraph ":data Module (Data Implementation)"
+        RP[Repository Implementation]
+        DTO[Data Transfer Object]
+    end
+
+    subgraph ":network Module (Remote)"
+        AS[API Service]
+        RF[Retrofit]
+    end
+
+    subgraph ":core Module (Local)"
+        SP[SharedPrefsManager]
+    end
+
+    UI --> VM
+    VM --> UC
+    UC --> RI
+    RI -.-> RP
+    RP --> AS
+    RP --> SP
+    AS --> RF
+    RF --- Backend[Remote Server]
+    
+    RP -- "Map to" --> DM
+    UC -- "Flow emission" --> VM
+    VM -- "State Update" --> UI
+```
+
+### Data Flow Steps:
+1.  **UI (`:app`)** calls a **Use Case (`:domain`)** via the ViewModel.
 2.  The **Use Case** requests data from a **Repository Interface (`:domain`)**.
 3.  The **Repository Implementation (`:data`)** fetches data from the **API Service (`:network`)** or **Local Storage (`:core`)**.
 4.  Data is mapped from **DTOs** (Data Transfer Objects) to **Domain Models** as it flows back to the UI.
