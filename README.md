@@ -46,13 +46,8 @@ The project supports multiple environments through Gradle build types:
 - **`staging`**: Pre-production environment.
 - **`release`**: Production-ready build with obfuscation and optimizations.
 
-## Getting Started
-
-1.  **Clone the repository**.
-2.  **Gradle Sync**: Open the project in Android Studio and perform a Gradle sync.
-3.  **Local Properties**: Ensure you have a `local.properties` file configured.
-4.  **Environment Configuration**: The app uses `.properties` files (e.g., `staging.properties`, `qa.properties`) to manage environment-specific variables like `BASE_URL`.
-5.  **Run the App**: Select the desired build variant (e.g., `debug`) and run it on an emulator or physical device.
+## Note
+**Environment Configuration**: The app uses `.properties` files (e.g., `staging.properties`, `qa.properties`) to manage environment-specific variables like `BASE_URL`.
 
 ## Testing
 
