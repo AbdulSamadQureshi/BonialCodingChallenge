@@ -38,10 +38,6 @@ class RetrofitClient(
                         requestBuilder.header("Authorization", "Bearer $token")
                     }
                 }
-
-                val lang = sharedPrefsManager.getStringValue(PreferenceKeys.KEY_LANGUAGE, "en") ?: "en"
-                requestBuilder.header("Accept-Language", lang)
-
                 chain.proceed(requestBuilder.build())
             }
             .build()
