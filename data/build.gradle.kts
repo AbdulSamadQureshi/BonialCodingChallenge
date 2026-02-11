@@ -1,6 +1,6 @@
 plugins {
-    id("com.android.library")
-    id("org.jetbrains.kotlin.android")
+    alias(libs.plugins.android.library)
+    alias(libs.plugins.kotlin.android)
 }
 
 android {
@@ -12,21 +12,29 @@ android {
     }
 
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_1_8
-        targetCompatibility = JavaVersion.VERSION_1_8
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
 
-    kotlinOptions {
-        jvmTarget = "1.8"
+    kotlin {
+        jvmToolchain(17)
     }
 }
 
 dependencies {
-    implementation(project(":network"))
     implementation(project(":domain"))
+    implementation(project(":network"))
     implementation(project(":core"))
-    implementation(libs.koin.core)
-    implementation(libs.androidx.core.ktx)
     implementation(libs.gson)
+    implementation(libs.koin.core)
+    implementation(libs.kotlinx.coroutines.core)
+    implementation(libs.retrofit.core)
+    
+    // Test dependencies
     testImplementation(libs.junit)
+    testImplementation(libs.mockito.core)
+    testImplementation(libs.mockito.kotlin)
+    testImplementation(libs.truth)
+    testImplementation(libs.turbine)
+    testImplementation(libs.kotlinx.coroutines.test)
 }

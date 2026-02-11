@@ -98,6 +98,7 @@ android {
                 buildConfigField("String", "BASE_URL", "\"${qaProperties.getProperty("BASE_URL")}\"")
                 buildConfigField("String", "ENVIRONMENT", "\"${qaProperties.getProperty("ENVIRONMENT")}\"")
             }
+            matchingFallbacks += listOf("debug", "release")
         }
 
         val staging by creating {
@@ -114,14 +115,15 @@ android {
                 stagingProperties.load(FileInputStream(stagingPropertiesFile))
                 buildConfigField("String", "BASE_URL", "\"${stagingProperties.getProperty("BASE_URL")}\"")
             }
+            matchingFallbacks += listOf("debug", "release")
         }
     }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
     }
-    kotlinOptions {
-        jvmTarget = "17"
+    kotlin {
+        jvmToolchain(17)
     }
     buildFeatures {
         compose = true
@@ -147,7 +149,16 @@ dependencies {
     implementation(libs.androidx.compose.material3.adaptive.navigation.suite)
     implementation(libs.koin.android)
     implementation(libs.koin.androidx.compose)
+
+    // Test dependencies
     testImplementation(libs.junit)
+    testImplementation(libs.mockito.core)
+    testImplementation(libs.mockito.kotlin)
+    testImplementation(libs.truth)
+    testImplementation(libs.turbine)
+    testImplementation(libs.kotlinx.coroutines.test)
+    testImplementation(libs.androidx.arch.core.testing)
+
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(platform(libs.androidx.compose.bom))
