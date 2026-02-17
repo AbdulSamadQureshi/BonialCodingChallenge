@@ -15,7 +15,7 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "Close Loop Wallet"
+rootProject.name = "Coding Challenge"
 include(":app")
 include(":data")
 include(":domain")
