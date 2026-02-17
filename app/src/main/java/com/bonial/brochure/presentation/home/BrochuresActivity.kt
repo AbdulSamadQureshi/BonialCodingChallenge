@@ -12,10 +12,8 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import com.bonial.brochure.presentation.model.BrochureUi
 import com.bonial.brochure.presentation.theme.CloseLoopWalletTheme
-import com.bonial.domain.model.network.response.BrochureDto
-import com.bonial.domain.model.network.response.ContentWrapperDto
-import com.bonial.domain.model.network.response.PublisherDto
 import org.koin.androidx.compose.koinViewModel
 
 class BrochuresActivity : ComponentActivity() {
@@ -56,32 +54,22 @@ fun BrochuresActivityPreview() {
         BrochuresActivityContent(
             screenContent = {
                 val mockData = listOf(
-                    ContentWrapperDto(
-                        contentType = "brochure",
-                        content = listOf(
-                            BrochureDto(
-                                brochureImage = null,
-                                distance = 0.5,
-                                publisher = PublisherDto(
-                                    name = "Publisher 1"
-                                )
-                            )
-                        )
+                    BrochureUi(
+                        id = 1L,
+                        title = "Brochure 1",
+                        publisherName = "Publisher 1",
+                        coverUrl = null,
+                        distance = 0.5
                     ),
-                    ContentWrapperDto(
-                        contentType = "brochurePremium",
-                        content = listOf(
-                            BrochureDto(
-                                brochureImage = null,
-                                distance = 1.2,
-                                publisher = PublisherDto(
-                                    name = "Publisher 2"
-                                )
-                            )
-                        ),
+                    BrochureUi(
+                        id = 2L,
+                        title = "Brochure 2",
+                        publisherName = "Publisher 2",
+                        coverUrl = null,
+                        distance = 1.2
                     )
                 )
-                BrochuresGrid(contents = mockData)
+                BrochuresGrid(brochures = mockData)
             }
         )
     }

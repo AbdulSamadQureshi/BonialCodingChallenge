@@ -2,7 +2,6 @@ package com.bonial.brochure.presentation.home
 
 import android.content.res.Configuration
 import androidx.compose.animation.core.LinearEasing
-import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
@@ -19,13 +18,11 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.material3.Card
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -42,7 +39,7 @@ import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
@@ -53,47 +50,53 @@ import coil.compose.AsyncImage
 import coil.compose.AsyncImagePainter
 import coil.request.ImageRequest
 import com.bonial.brochure.R
+import com.bonial.brochure.presentation.model.BrochureUi
 import com.bonial.brochure.presentation.theme.CloseLoopWalletTheme
 import com.bonial.brochure.presentation.theme.White
 import com.bonial.brochure.presentation.utils.UiState
-import com.bonial.domain.model.network.response.BrochureDto
-import com.bonial.domain.model.network.response.ContentWrapperDto
-import com.bonial.domain.model.network.response.PublisherDto
 
+/**
+ * Main screen for displaying brochures.
+ * Highly decoupled from specific business models by passing data down as primitive types to atomic components.
+ */
 @Composable
 fun BrochuresScreen(brochuresViewModel: BrochuresViewModel) {
     val uiState by brochuresViewModel.brochuresUiState.collectAsState()
 
-    LaunchedEffect(Unit) {
-        brochuresViewModel.getBrochures()
-    }
+    BrochuresContent(
+        uiState = uiState,
+        modifier = Modifier
+            .fillMaxSize()
+            .testTag("brochure_screen")
+            .background(White)
+    )
+}
 
-    Box(modifier = Modifier
-        .fillMaxSize()
-        .testTag("brochure_screen")
-        .background(White)) {
-        when (val state = uiState) {
-            is UiState.Loading -> {
-                BrochuresLoadingGrid()
-            }
-
-            is UiState.Success -> {
-                BrochuresGrid(state.data)
-            }
-
-            is UiState.Error -> {
-                Text(
-                    text = state.message ?: "something went wrong, please try again later",
-                    color = Color.Red,
-                    modifier = Modifier
-                        .align(Alignment.Center)
-                        .padding(16.dp)
-                )
-            }
-
+@Composable
+private fun BrochuresContent(
+    uiState: UiState<List<BrochureUi>>,
+    modifier: Modifier = Modifier
+) {
+    Box(
+        modifier = modifier,
+        contentAlignment = Alignment.Center
+    ) {
+        when (uiState) {
+            is UiState.Loading -> BrochuresLoadingGrid()
+            is UiState.Success -> BrochuresGrid(brochures = uiState.data)
+            is UiState.Error -> ErrorMessage(message = uiState.message)
             else -> {}
         }
     }
+}
+
+@Composable
+fun ErrorMessage(message: String?) {
+    Text(
+        text = message ?: stringResource(R.string.error_generic),
+        color = Color.Red,
+        modifier = Modifier.padding(16.dp)
+    )
 }
 
 @Composable
@@ -113,56 +116,66 @@ fun BrochuresLoadingGrid() {
 }
 
 @Composable
-fun BrochuresGrid(contents: List<ContentWrapperDto>) {
+fun BrochuresGrid(
+    brochures: List<BrochureUi>,
+    modifier: Modifier = Modifier
+) {
     val configuration = LocalConfiguration.current
     val columns = if (configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) 3 else 2
 
     LazyVerticalGrid(
         columns = GridCells.Fixed(columns),
         contentPadding = PaddingValues(16.dp),
-        modifier = Modifier.fillMaxSize().testTag("brochures_grid")
+        modifier = modifier
+            .fillMaxSize()
+            .testTag("brochures_grid")
     ) {
         items(
-            items = contents,
-            key = { item -> "${item.contentType}_${item.content.firstOrNull()?.brochureImage ?: item.hashCode()}" },
-            span = { item ->
-                if (item.contentType == "brochurePremium") {
-                    GridItemSpan(columns)
-                } else {
-                    GridItemSpan(1)
-                }
-            }
-        ) { wrapper ->
-            BrochureItem(wrapper)
+            items = brochures,
+            key = { item -> item.coverUrl ?: item.hashCode() }
+        ) { brochure ->
+            // Passed as independent primitive types to maintain atomicity
+            BrochureItem(
+                title = brochure.title,
+                imageUrl = brochure.coverUrl,
+                publisherName = brochure.publisherName
+            )
         }
     }
 }
 
+/**
+ * Atomic component for a single brochure item.
+ * Independent of the [BrochureUi] class.
+ */
 @Composable
-fun BrochureItem(wrapper: ContentWrapperDto) {
-    val brochure = wrapper.content.firstOrNull() ?: return
+fun BrochureItem(
+    title: String?,
+    imageUrl: String?,
+    publisherName: String?,
+    modifier: Modifier = Modifier
+) {
     var isLoading by remember { mutableStateOf(true) }
     var isError by remember { mutableStateOf(false) }
 
     Card(
-        modifier = Modifier
+        modifier = modifier
             .padding(8.dp)
             .fillMaxWidth()
-            .testTag("brochure_item_${wrapper.contentType}")
+            .testTag("brochure_item")
     ) {
-        Box(modifier = Modifier.fillMaxWidth().aspectRatio(0.7f)) {
-            AsyncImage(
-                model = ImageRequest.Builder(LocalContext.current)
-                    .data(brochure.brochureImage)
-                    .crossfade(true)
-                    .build(),
-                contentDescription = brochure.publisher?.name ?: "Brochure Image",
-                onState = { state ->
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .aspectRatio(0.7f)
+        ) {
+            BrochureImage(
+                imageUrl = imageUrl,
+                contentDescription = publisherName,
+                onStateChanged = { state ->
                     isLoading = state is AsyncImagePainter.State.Loading
                     isError = state is AsyncImagePainter.State.Error
-                },
-                modifier = Modifier.fillMaxSize(),
-                contentScale = ContentScale.Crop
+                }
             )
 
             if (isLoading) {
@@ -170,63 +183,93 @@ fun BrochureItem(wrapper: ContentWrapperDto) {
             }
 
             if (isError) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .testTag("error_placeholder")
-                        .background(Color.LightGray.copy(alpha = 0.2f)),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        AsyncImage(
-                            model = R.drawable.placeholder_error,
-                            contentDescription = null,
-                            modifier = Modifier.size(48.dp),
-                            contentScale = ContentScale.Fit
-                        )
-                        Spacer(modifier = Modifier.height(8.dp))
-                        Text(
-                            text = "Image unavailable",
-                            fontSize = 12.sp,
-                            color = Color.Gray,
-                            fontWeight = FontWeight.Medium
-                        )
-                    }
-                }
+                ImageErrorPlaceholder()
             }
 
-            // Title Overlay
-            if (!brochure.title.isNullOrBlank() && !isLoading && !isError) {
-                Box(
-                    modifier = Modifier
-                        .align(Alignment.BottomStart)
-                        .fillMaxWidth()
-                        .background(
-                            Brush.verticalGradient(
-                                colors = listOf(Color.Transparent, Color.Black.copy(alpha = 0.7f)),
-                                startY = 0f
-                            )
-                        )
-                        .padding(top = 16.dp, start = 8.dp, end = 8.dp, bottom = 8.dp)
-                ) {
-                    Text(
-                        text = brochure.title!!,
-                        color = Color.White,
-                        fontSize = 12.sp,
-                        fontWeight = FontWeight.Bold,
-                        maxLines = 2,
-                        overflow = TextOverflow.Ellipsis
-                    )
-                }
+            if (!title.isNullOrBlank() && !isLoading && !isError) {
+                BrochureTitleOverlay(
+                    title = title,
+                    modifier = Modifier.align(Alignment.BottomCenter)
+                )
             }
         }
     }
 }
 
 @Composable
-fun BrochureShimmerItem() {
+fun BrochureImage(
+    imageUrl: String?,
+    contentDescription: String?,
+    onStateChanged: (AsyncImagePainter.State) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    AsyncImage(
+        model = ImageRequest.Builder(LocalContext.current)
+            .data(imageUrl)
+            .crossfade(true)
+            .build(),
+        contentDescription = contentDescription ?: stringResource(R.string.content_desc_brochure_image),
+        onState = onStateChanged,
+        modifier = modifier.fillMaxSize(),
+        contentScale = ContentScale.Crop
+    )
+}
+
+@Composable
+fun ImageErrorPlaceholder(modifier: Modifier = Modifier) {
+    Box(
+        modifier = modifier
+            .fillMaxSize()
+            .testTag("error_placeholder")
+            .background(Color.LightGray.copy(alpha = 0.2f)),
+        contentAlignment = Alignment.Center
+    ) {
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            AsyncImage(
+                model = R.drawable.placeholder_error,
+                contentDescription = null,
+                modifier = Modifier.size(48.dp),
+                contentScale = ContentScale.Fit
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text = stringResource(R.string.error_image_unavailable),
+                fontSize = 12.sp,
+                color = Color.Gray,
+                fontWeight = FontWeight.Medium
+            )
+        }
+    }
+}
+
+@Composable
+fun BrochureTitleOverlay(title: String, modifier: Modifier = Modifier) {
+    Box(
+        modifier = modifier
+            .fillMaxWidth()
+            .background(
+                Brush.verticalGradient(
+                    colors = listOf(Color.Transparent, Color.Black.copy(alpha = 0.7f)),
+                    startY = 0f
+                )
+            )
+            .padding(top = 16.dp, start = 8.dp, end = 8.dp, bottom = 8.dp)
+    ) {
+        Text(
+            text = title,
+            color = Color.White,
+            fontSize = 12.sp,
+            fontWeight = FontWeight.Bold,
+            maxLines = 2,
+            overflow = TextOverflow.Ellipsis
+        )
+    }
+}
+
+@Composable
+fun BrochureShimmerItem(modifier: Modifier = Modifier) {
     Card(
-        modifier = Modifier
+        modifier = modifier
             .padding(8.dp)
             .fillMaxWidth()
     ) {
@@ -268,36 +311,24 @@ fun Modifier.shimmerEffect(): Modifier = composed {
 
 @Preview(showBackground = true)
 @Composable
-fun BrochuresGridPreview() {
+private fun BrochuresGridPreview() {
     CloseLoopWalletTheme {
         val mockData = listOf(
-            ContentWrapperDto(
-                contentType = "brochure",
-                content = listOf(
-                    BrochureDto(
-                        title = "Veganuary Rezepte",
-                        brochureImage = null,
-                        distance = 0.5,
-                        publisher = PublisherDto(
-                            name = "Publisher 1"
-                        )
-                    )
-                )
+            BrochureUi(
+                id = 1,
+                title = "Veganuary Rezepte",
+                publisherName = "Publisher 1",
+                coverUrl = null,
+                distance = 0.5
             ),
-            ContentWrapperDto(
-                contentType = "brochurePremium",
-                content = listOf(
-                    BrochureDto(
-                        title = "Premium Offer",
-                        brochureImage = null,
-                        distance = 1.2,
-                        publisher = PublisherDto(
-                            name = "Publisher 2"
-                        )
-                    )
-                )
+            BrochureUi(
+                id = 2,
+                title = "Premium Offer",
+                publisherName = "Publisher 2",
+                coverUrl = null,
+                distance = 1.2
             )
         )
-        BrochuresGrid(contents = mockData)
+        BrochuresGrid(brochures = mockData)
     }
 }
