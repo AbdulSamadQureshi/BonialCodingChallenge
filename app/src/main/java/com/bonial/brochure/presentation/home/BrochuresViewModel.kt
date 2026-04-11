@@ -1,36 +1,55 @@
 package com.bonial.brochure.presentation.home
 
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
 import com.bonial.brochure.presentation.model.BrochureUi
-import com.bonial.brochure.presentation.utils.UiState
 import com.bonial.brochure.presentation.utils.toErrorMessage
+import com.bonial.core.base.MviViewModel
+import com.bonial.core.ui.UiState
 import com.bonial.domain.model.network.response.Request
 import com.bonial.domain.useCase.brochures.BrochuresUseCase
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
+import androidx.lifecycle.viewModelScope
+
+data class BrochuresState(
+    val brochuresUiState: UiState<List<BrochureUi>> = UiState.Idle
+)
+
+sealed class BrochuresIntent {
+    object LoadBrochures : BrochuresIntent()
+}
+
+sealed class BrochuresEffect {
+    data class ShowError(val message: String) : BrochuresEffect()
+}
 
 class BrochuresViewModel(
     private val brochuresUseCase: BrochuresUseCase,
-) : ViewModel() {
+) : MviViewModel<BrochuresState, BrochuresIntent, BrochuresEffect>() {
 
-    private val _brochuresUiState = MutableStateFlow<UiState<List<BrochureUi>>>(UiState.Idle)
-    val brochuresUiState = _brochuresUiState.asStateFlow()
+    override fun createInitialState(): BrochuresState = BrochuresState()
 
     init {
-        getBrochures()
+        sendIntent(BrochuresIntent.LoadBrochures)
+    }
+
+    override fun handleIntent(intent: BrochuresIntent) {
+        when (intent) {
+            is BrochuresIntent.LoadBrochures -> getBrochures()
+        }
     }
 
     private fun getBrochures() {
         viewModelScope.launch {
-            brochuresUseCase().collect { response ->
-                _brochuresUiState.value = when (response) {
-                    is Request.Loading -> UiState.Loading
+            setState { copy(brochuresUiState = UiState.Loading) }
+            brochuresUseCase().collectLatest { response ->
+                when (response) {
+                    is Request.Loading -> {
+                        setState { copy(brochuresUiState = UiState.Loading) }
+                    }
                     is Request.Success -> {
                         val uiModels = response.data.map { domainModel ->
                             BrochureUi(
-                                id = null, // Or some ID if available in domain model
+                                id = null,
                                 title = domainModel.title,
                                 publisherName = domainModel.publisherName,
                                 coverUrl = domainModel.coverUrl,
@@ -39,14 +58,16 @@ class BrochuresViewModel(
                         }
 
                         if (uiModels.isNotEmpty()) {
-                            UiState.Success(uiModels)
+                            setState { copy(brochuresUiState = UiState.Success(uiModels)) }
                         } else {
-                            UiState.Error("No brochures found nearby.")
+                            setState { copy(brochuresUiState = UiState.Error("No brochures found nearby.")) }
                         }
                     }
 
                     is Request.Error -> {
-                        UiState.Error(response.apiError.toErrorMessage())
+                        val errorMessage = response.apiError.toErrorMessage()
+                        setState { copy(brochuresUiState = UiState.Error(errorMessage)) }
+                        setEffect { BrochuresEffect.ShowError(errorMessage) }
                     }
                 }
             }
