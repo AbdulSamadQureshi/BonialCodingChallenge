@@ -6,9 +6,11 @@ import com.bonial.core.base.MviViewModel
 import com.bonial.core.ui.UiState
 import com.bonial.domain.model.network.response.Request
 import com.bonial.domain.useCase.brochures.BrochuresUseCase
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import androidx.lifecycle.viewModelScope
+import javax.inject.Inject
 
 data class BrochuresState(
     val brochuresUiState: UiState<List<BrochureUi>> = UiState.Idle
@@ -22,7 +24,8 @@ sealed class BrochuresEffect {
     data class ShowError(val message: String) : BrochuresEffect()
 }
 
-class BrochuresViewModel(
+@HiltViewModel
+class BrochuresViewModel @Inject constructor(
     private val brochuresUseCase: BrochuresUseCase,
 ) : MviViewModel<BrochuresState, BrochuresIntent, BrochuresEffect>() {
 

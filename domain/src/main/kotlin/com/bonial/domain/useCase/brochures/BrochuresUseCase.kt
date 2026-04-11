@@ -6,8 +6,9 @@ import com.bonial.domain.repository.BrochuresRepository
 import com.bonial.domain.useCase.BaseUseCase
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import javax.inject.Inject
 
-class BrochuresUseCase(
+class BrochuresUseCase @Inject constructor(
     private val repository: BrochuresRepository
 ) : BaseUseCase<Any?, Flow<Request<List<Brochure>>>> {
     override suspend fun invoke(params: Any?): Flow<Request<List<Brochure>>> {

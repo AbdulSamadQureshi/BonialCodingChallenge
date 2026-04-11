@@ -12,17 +12,19 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.bonial.brochure.presentation.model.BrochureUi
 import com.bonial.brochure.presentation.theme.CloseLoopWalletTheme
-import org.koin.androidx.compose.koinViewModel
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class BrochuresActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
             CloseLoopWalletTheme {
-                val brochuresViewModel: BrochuresViewModel = koinViewModel()
+                val brochuresViewModel: BrochuresViewModel = hiltViewModel()
                 BrochuresScreen(brochuresViewModel)
             }
         }

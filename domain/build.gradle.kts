@@ -2,6 +2,7 @@ plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.parcelize)
+    alias(libs.plugins.ksp)
 }
 
 android {
@@ -23,7 +24,8 @@ android {
 }
 
 dependencies {
-    implementation(libs.koin.core)
+    implementation(libs.hilt.android)
+    ksp(libs.hilt.android.compiler)
     implementation(libs.gson)
     implementation(libs.kotlinx.coroutines.core)
 

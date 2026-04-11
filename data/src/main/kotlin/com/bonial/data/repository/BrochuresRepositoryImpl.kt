@@ -6,11 +6,14 @@ import com.bonial.domain.model.network.response.Request
 import com.bonial.domain.repository.BrochuresRepository
 import com.bonial.utils.safeApiCall
 import kotlinx.coroutines.flow.Flow
+import javax.inject.Inject
+import javax.inject.Singleton
 
-class BrochuresRepositoryImpl(private val brochuresApiService: BrochuresApiService): BrochuresRepository {
+@Singleton
+class BrochuresRepositoryImpl @Inject constructor(
+    private val brochuresApiService: BrochuresApiService
+) : BrochuresRepository {
     override fun brochures(): Flow<Request<BrochureResponseDto>> {
         return safeApiCall { brochuresApiService.brochures() }
     }
-
-
 }

@@ -1,18 +1,22 @@
 package com.bonial.data.di
 
-import com.bonial.data.remote.service.*
-import com.bonial.data.repository.*
-import com.bonial.domain.repository.*
-import org.koin.dsl.module
+import com.bonial.data.remote.service.BrochuresApiService
+import com.squareup.anvil.annotations.ContributesTo
+import dagger.Module
+import dagger.Provides
+import dagger.hilt.InstallIn
+import dagger.hilt.components.SingletonComponent
 import retrofit2.Retrofit
+import javax.inject.Singleton
 
-val dataModule = module {
-    // Services
-    single<BrochuresApiService> { get<Retrofit>().create(BrochuresApiService::class.java) }
+@Module
+@InstallIn(SingletonComponent::class)
+@ContributesTo(SingletonComponent::class)
+object DataModule {
 
-    // Repositories
-    single<BrochuresRepository> { BrochuresRepositoryImpl(get()) }
-
-    // Local Storage
-    single<LocalStorageRepository> { LocalStorageRepositoryImpl(get()) }
+    @Provides
+    @Singleton
+    fun provideBrochuresApiService(retrofit: Retrofit): BrochuresApiService {
+        return retrofit.create(BrochuresApiService::class.java)
+    }
 }
