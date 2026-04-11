@@ -1,7 +1,7 @@
 package com.bonial.brochure.di
 
 import com.bonial.brochure.BuildConfig
-import com.bonial.core.preferences.SharedPrefsManager
+import com.bonial.core.preferences.UserPreferencesDataStore
 import com.bonial.network.RetrofitClient
 import com.squareup.anvil.annotations.ContributesTo
 import dagger.Module
@@ -18,11 +18,11 @@ object NetworkModule {
 
     @Provides
     @Singleton
-    fun provideRetrofit(sharedPrefsManager: SharedPrefsManager): Retrofit {
+    fun provideRetrofit(userPreferencesDataStore: UserPreferencesDataStore): Retrofit {
         return RetrofitClient(
             baseUrl = BuildConfig.BASE_URL,
             enableLogging = BuildConfig.DEBUG,
-            sharedPrefsManager = sharedPrefsManager
+            userPreferencesDataStore = userPreferencesDataStore,
         ).retrofit
     }
 }

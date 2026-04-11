@@ -33,7 +33,10 @@ dependencies {
     implementation(libs.anvil.annotations)
     implementation(libs.kotlinx.coroutines.core)
     implementation(libs.retrofit.core)
-    
+    implementation(libs.room.runtime)
+    implementation(libs.room.ktx)
+    ksp(libs.room.compiler)
+
     // Test dependencies
     testImplementation(libs.junit)
     testImplementation(libs.mockito.core)
@@ -41,4 +44,5 @@ dependencies {
     testImplementation(libs.truth)
     testImplementation(libs.turbine)
     testImplementation(libs.kotlinx.coroutines.test)
+    androidTestImplementation(libs.room.testing)
 }

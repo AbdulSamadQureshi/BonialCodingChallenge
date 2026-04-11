@@ -8,6 +8,7 @@ plugins {
     alias(libs.plugins.hilt)
     alias(libs.plugins.ksp)
     alias(libs.plugins.anvil)
+    alias(libs.plugins.kotlin.serialization)
 }
 
 android {
@@ -54,8 +55,8 @@ android {
         release {
             signingConfig = signingConfigs.getByName("release")
             isDebuggable = false
-            isMinifyEnabled = false
-            isShrinkResources = false
+            isMinifyEnabled = true
+            isShrinkResources = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
@@ -153,6 +154,8 @@ dependencies {
     implementation(libs.hilt.android)
     ksp(libs.hilt.android.compiler)
     implementation(libs.hilt.navigation.compose)
+    implementation(libs.navigation.compose)
+    implementation(libs.kotlinx.serialization.json)
 
     // Test dependencies
     testImplementation(libs.junit)

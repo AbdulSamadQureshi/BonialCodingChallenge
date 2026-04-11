@@ -6,5 +6,6 @@ data class BrochureUi(
     val title: String?,
     val publisherName: String?,
     val coverUrl: String?,
-    val distance: Double?
+    val distance: Double?,
+    val isFavourite: Boolean = false,
 )

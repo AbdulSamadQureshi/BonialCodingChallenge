@@ -8,35 +8,25 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 
+private const val MAX_DISTANCE_KM = 5.0
+
 class BrochuresUseCase @Inject constructor(
-    private val repository: BrochuresRepository
+    private val repository: BrochuresRepository,
 ) : BaseUseCase<Any?, Flow<Request<List<Brochure>>>> {
+
     override suspend fun invoke(params: Any?): Flow<Request<List<Brochure>>> {
-        return repository.brochures().map { response ->
-            when (response) {
+        return repository.brochures().map { request ->
+            when (request) {
                 is Request.Loading -> Request.Loading
-                is Request.Error -> Request.Error(response.apiError)
-                is Request.Success -> {
-                    val contents = response.data.embedded?.contents ?: emptyList()
-                    val domainBrochures = contents.flatMap { wrapper ->
-                        val contentType = wrapper.contentType
-                        wrapper.content.map { dto ->
-                            Brochure(
-                                title = dto.title,
-                                coverUrl = dto.brochureImage,
-                                distance = dto.distance,
-                                publisherName = dto.publisher?.name,
-                                contentType = contentType
-                            )
-                        }
-                    }.filter { brochure ->
-                        val isCorrectType = brochure.contentType == "brochure" || brochure.contentType == "brochurePremium"
-                        val isNearby = (brochure.distance ?: Double.MAX_VALUE) < 5.0
-                        isCorrectType && isNearby
-                    }
-                    Request.Success(domainBrochures)
-                }
+                is Request.Error -> Request.Error(request.apiError)
+                is Request.Success -> Request.Success(request.data.filter { it.isEligible() })
             }
         }
+    }
+
+    private fun Brochure.isEligible(): Boolean {
+        val isCorrectType = contentType == "brochure" || contentType == "brochurePremium"
+        val isNearby = (distance ?: Double.MAX_VALUE) < MAX_DISTANCE_KM
+        return isCorrectType && isNearby
     }
 }

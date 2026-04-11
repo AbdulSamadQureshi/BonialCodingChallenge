@@ -4,16 +4,8 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.safeDrawingPadding
-import androidx.compose.material3.Scaffold
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
-import androidx.hilt.navigation.compose.hiltViewModel
-import com.bonial.brochure.presentation.model.BrochureUi
+import androidx.navigation.compose.rememberNavController
+import com.bonial.brochure.presentation.navigation.BrochureNavGraph
 import com.bonial.brochure.presentation.theme.CloseLoopWalletTheme
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -24,55 +16,9 @@ class BrochuresActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             CloseLoopWalletTheme {
-                val brochuresViewModel: BrochuresViewModel = hiltViewModel()
-                BrochuresScreen(brochuresViewModel)
+                val navController = rememberNavController()
+                BrochureNavGraph(navController = navController)
             }
         }
-    }
-}
-
-
-@Composable
-fun BrochuresActivityContent(
-    screenContent: @Composable () -> Unit
-) {
-    Scaffold(
-        modifier = Modifier
-            .fillMaxSize()
-            .safeDrawingPadding(),
-
-        ) { innerPadding ->
-        Box(modifier = Modifier.padding(innerPadding)) {
-            screenContent()
-        }
-    }
-}
-
-
-@Preview(showBackground = true)
-@Composable
-fun BrochuresActivityPreview() {
-    CloseLoopWalletTheme {
-        BrochuresActivityContent(
-            screenContent = {
-                val mockData = listOf(
-                    BrochureUi(
-                        id = 1L,
-                        title = "Brochure 1",
-                        publisherName = "Publisher 1",
-                        coverUrl = null,
-                        distance = 0.5
-                    ),
-                    BrochureUi(
-                        id = 2L,
-                        title = "Brochure 2",
-                        publisherName = "Publisher 2",
-                        coverUrl = null,
-                        distance = 1.2
-                    )
-                )
-                BrochuresGrid(brochures = mockData)
-            }
-        )
     }
 }

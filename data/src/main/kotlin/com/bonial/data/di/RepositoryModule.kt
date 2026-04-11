@@ -1,8 +1,10 @@
 package com.bonial.data.di
 
 import com.bonial.data.repository.BrochuresRepositoryImpl
+import com.bonial.data.repository.FavouritesRepositoryImpl
 import com.bonial.data.repository.LocalStorageRepositoryImpl
 import com.bonial.domain.repository.BrochuresRepository
+import com.bonial.domain.repository.FavouritesRepository
 import com.bonial.domain.repository.LocalStorageRepository
 import dagger.Binds
 import dagger.Module
@@ -21,4 +23,8 @@ abstract class RepositoryModule {
     @Binds
     @Singleton
     abstract fun bindLocalStorageRepository(impl: LocalStorageRepositoryImpl): LocalStorageRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindFavouritesRepository(impl: FavouritesRepositoryImpl): FavouritesRepository
 }

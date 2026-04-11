@@ -1,127 +1,159 @@
-# Bonial Coding Challenge - Brochure App
+# Bonial Coding Challenge — Brochure App
 
-This project is an Android application that displays brochures using a modern, multi-module Clean Architecture approach. It demonstrates best practices in Android development, including Jetpack Compose for UI, Koin for dependency injection, and a robust networking layer.
+An Android application that displays nearby brochures, built with a multi-module Clean Architecture approach and modern Jetpack libraries.
 
 ## Project Structure
 
-The project follows **Clean Architecture** principles and is divided into several modules (app, data, domain, network, core) to ensure separation of concerns, scalability, and testability.
+The project follows **Clean Architecture** principles divided into five modules:
 
-### Modules
+- **`:app`** — Presentation layer: Compose UI, ViewModels, MVI state management
+- **`:domain`** — Pure Kotlin business logic: Use Cases, Domain Models, Repository Interfaces
+- **`:data`** — Data layer: Repository implementations, Room database, remote API service
+- **`:network`** — Networking: Retrofit configuration, OkHttp interceptors (auth, logging)
+- **`:core`** — Shared utilities: MVI base classes, SharedPrefsManager, UI extensions
 
-- **`:app`**: The presentation layer. It contains UI components built with **Jetpack Compose**, ViewModels, and Android-specific implementations. It depends on all other modules.
-- **`:domain`**: The core business logic. It contains **Use Cases**, **Domain Models**, and **Repository Interfaces**. This module is pure Kotlin/Java and has no dependencies on the Android framework or other modules (except `:core` for common utilities).
-- **`:data`**: The data layer implementation. it implements the repository interfaces defined in the `:domain` module. It manages data from various sources (Network and Local).
-- **`:network`**: A dedicated module for networking. It handles **Retrofit** configuration, OkHttp interceptors (including authentication and logging), and API service definitions.
-- **`:core`**: Contains shared components, utilities, and helper classes used across multiple modules, such as `SharedPrefsManager` for local storage.
+## Architecture
 
-## Architecture & Interaction
+### Pattern: Clean Architecture + MVI
 
-The following diagram illustrates the interaction between modules and the flow of data:
+Each screen follows a strict unidirectional data flow:
+
+```
+UI (Compose) → Intent → ViewModel → UseCase → Repository → [Network / Room]
+                ↑                                                    |
+                └─────────── State (StateFlow) ─────────────────────┘
+```
+
+### Data Flow
 
 ```mermaid
 graph TD
-    subgraph ":app Module (Presentation)"
+    subgraph ":app (Presentation)"
         UI[Compose UI]
-        VM[ViewModel]
+        VM[BrochuresViewModel]
     end
 
-    subgraph ":domain Module (Business Logic)"
-        UC[Use Case]
-        RI[Repository Interface]
-        DM[Domain Model]
+    subgraph ":domain (Business Logic)"
+        UC[BrochuresUseCase]
+        RI[BrochuresRepository Interface]
     end
 
-    subgraph ":data Module (Data Implementation)"
-        RP[Repository Implementation]
-        DTO[Data Transfer Object]
+    subgraph ":data (Data)"
+        RP[BrochuresRepositoryImpl]
+        API[BrochuresApiService]
+        LOCAL[BrochureLocalDataSource]
+        DB[(Room Database)]
     end
 
-    subgraph ":network Module (Remote)"
-        AS[API Service]
-        RF[Retrofit]
+    subgraph ":network (Remote)"
+        RF[Retrofit / OkHttp]
     end
 
-    subgraph ":core Module (Local)"
-        SP[SharedPrefsManager]
-    end
-
-    UI --> VM
-    VM --> UC
-    UC --> RI
-    RI -.-> RP
-    RP --> AS
-    RP --> SP
-    AS --> RF
-    RF --- Backend[Remote Server]
-    
-    RP -- "Map to" --> DM
-    UC -- "Flow emission" --> VM
-    VM -- "State Update" --> UI
+    UI -->|Intent| VM
+    VM -->|invoke| UC
+    UC -->|brochures()| RI
+    RI -.->|implements| RP
+    RP -->|network-first| API
+    RP -->|cache on success| LOCAL
+    RP -->|fallback on failure| LOCAL
+    LOCAL --> DB
+    API --> RF
+    RF --> Backend[Remote API]
+    VM -->|StateFlow| UI
 ```
 
-### Data Flow Steps:
-1.  **UI (`:app`)** calls a **Use Case (`:domain`)** via the ViewModel.
-2.  The **Use Case** requests data from a **Repository Interface (`:domain`)**.
-3.  The **Repository Implementation (`:data`)** fetches data from the **API Service (`:network`)** or **Local Storage (`:core`)**.
-4.  Data is mapped from **DTOs** (Data Transfer Objects) to **Domain Models** as it flows back to the UI.
-5.  **State Management**: The UI observes changes in the data through `StateFlow` or `Flow` emitted by the Use Cases, wrapped in a `Request` or `UiState` sealed class to handle Loading, Success, and Error states.
+### Offline-First Strategy
 
-## Technologies Used
+`BrochuresRepositoryImpl` applies a **network-first with cache fallback** approach:
 
-- **Language**: Kotlin
-- **UI Framework**: Jetpack Compose
-- **Asynchronous Programming**: Kotlin Coroutines & Flow
-- **Dependency Injection**: Koin
-- **Networking**: Retrofit & OkHttp
-- **Serialization**: Gson
-- **Image Loading**: Coil
-- **Testing**:
-    - **Unit Testing**: JUnit 4, Mockito-Kotlin, Google Truth, Turbine
-    - **UI Testing**: Jetpack Compose UI Test Framework
+1. Emit `Request.Loading`
+2. Fetch from network → on success, cache to Room, emit `Request.Success`
+3. On network failure → read from Room:
+   - Non-empty cache → emit `Request.Success` (stale data)
+   - Empty cache → emit `Request.Error`
 
-## Testing
+## Tech Stack
 
-The project has a comprehensive suite of unit and UI tests.
+| Category | Library |
+|---|---|
+| Language | Kotlin |
+| UI | Jetpack Compose + Material 3 |
+| Architecture | Clean Architecture, MVI |
+| DI | Hilt 2.58 + Anvil 2.7.0 |
+| Async | Kotlin Coroutines + Flow |
+| Networking | Retrofit 3 + OkHttp 5 |
+| Serialization | Gson (custom `ContentWrapperDeserializer`) |
+| Image Loading | Coil 2.7 |
+| Local Storage | Room 2.6 + SharedPreferences |
+| Build | Gradle Version Catalog (`libs.versions.toml`) |
+| Code Quality | Detekt + ktlint |
+| CI | GitHub Actions |
+
+## Testing Strategy
+
+Tests are organised by layer, with each layer testing its own responsibilities:
 
 ### Unit Tests
-Unit tests are in place for critical components, including:
-- **`SharedPrefsManager`**: Verifies local storage logic.
-- **`safeApiCall`**: Ensures correct `Flow` emissions for network states.
-- **`ContentWrapperDeserializer`**: Confirms custom JSON parsing logic.
-- **`BrochuresViewModel`**: Tests business logic, including filtering by distance and content type.
 
-To run all unit tests, execute:
+| Test | What it covers |
+|---|---|
+| `BrochuresViewModelTest` | State transitions (Loading → Success/Error), intent handling |
+| `BrochuresUseCaseTest` | Distance filtering (< 5 km), content type filtering, Loading/Error passthrough |
+| `BrochuresRepositoryImplTest` | Network success + cache write, cache fallback, empty cache → error |
+| `BrochureLocalDataSourceImplTest` | DAO delegation, delete-before-insert ordering |
+| `NetworkHelperTest` | `safeApiCall` Flow emissions for success/failure/network errors |
+| `ContentWrapperDeserializerTest` | Custom Gson deserializer for polymorphic content types |
+| `SharedPrefsManagerTest` | Local preference read/write operations |
+
+### UI / Instrumentation Tests
+
+| Test | What it covers |
+|---|---|
+| `BrochureScreenTest` | Main screen renders, grid is visible on data load |
+| `BrochuresGridTest` | Premium brochures span full width, error placeholder shown on image failure |
+
+Run unit tests:
 ```bash
 ./gradlew test
 ```
 
-### UI Tests (Espresso & Compose)
-UI tests are implemented to verify the visual components and their behavior.
-- **`BrochureScreenTest`**: Ensures the main screen launches and successfully displays the brochure grid after data is loaded.
-- **`BrochuresGridTest`**: Contains isolated tests for the grid's UI logic:
-    - Verifies that "premium" brochures span the full grid width while "simple" brochures occupy a single column.
-    - Confirms that a placeholder image is displayed when a brochure image fails to load.
-
-To run the instrumentation tests, execute:
+Run instrumentation tests:
 ```bash
 ./gradlew connectedAndroidTest
 ```
 
+## Code Quality
+
+```bash
+./gradlew ktlintCheck   # Kotlin style (Android Studio code style, 140-char limit)
+./gradlew detekt        # Static analysis (complexity, coroutines safety, naming)
+```
+
+Configuration: `config/detekt/detekt.yml`, `.editorconfig`
+
+## CI/CD
+
+GitHub Actions runs on every push and pull request to `main`/`develop`:
+
+1. **Code Quality** — ktlint + Detekt
+2. **Unit Tests** — `./gradlew test`
+3. **Build** — `assembleDebug` with APK upload
+
+See `.github/workflows/ci.yml`.
+
 ## Build Variants
 
-The project supports multiple environments through Gradle build types:
+| Variant | Environment | Minification | Notes |
+|---|---|---|---|
+| `debug` | Staging | Off | Debug logging on |
+| `qa` | QA | Off | App ID suffix `.qa` |
+| `staging` | Staging | Off | App ID suffix `.staging` |
+| `release` | Production | **On** (R8 + resource shrinking) | ProGuard rules in `proguard-rules.pro` |
 
-- **`debug`**: Used for daily development with staging endpoints and logging enabled.
-- **`qa`**: Dedicated environment for quality assurance testing.
-- **`staging`**: Pre-production environment.
-- **`release`**: Production-ready build with obfuscation and optimizations.
+Environment-specific `BASE_URL` and `ENVIRONMENT` values are loaded from `.properties` files (`debug.properties`, `qa.properties`, `staging.properties`, `release.properties`).
 
-**Note**: The app uses `.properties` files (e.g., `staging.properties`, `qa.properties`) to manage environment-specific variables like `BASE_URL`.
+## Known Trade-offs
 
-## Future Updates
-
-Several enhancements are planned to further modernize the codebase:
-
-1.  **Migrate to Hilt for Dependency Injection**: Replace Koin with Hilt. While Koin is effective, Hilt offers better integration with the Jetpack ecosystem, improved tooling, and compile-time safety, reducing the chance of runtime errors. This was deferred due to initial time constraints.
-
-2.  **Replace SharedPreferences with Jetpack DataStore**: The custom `SharedPrefsManager` will be migrated to Jetpack's **Preferences DataStore**. This provides a more robust and modern solution for simple key-value storage with the benefits of an asynchronous, transactional API using Kotlin Coroutines and Flow.
+- **Gson over Kotlinx Serialization**: Gson was retained to preserve the existing custom `ContentWrapperDeserializer`. Kotlinx Serialization is the modern Kotlin-first alternative and would be preferred in a greenfield project.
+- **SharedPreferences for token storage**: The auth token is stored in SharedPreferences via `SharedPrefsManager`. Jetpack DataStore (Preferences) would be the modern replacement; migration is straightforward given the existing abstraction layer.
+- **Single-screen navigation**: The app is single-screen, so Jetpack Navigation Compose was not introduced. It would be the natural next step if a brochure detail screen were added.
