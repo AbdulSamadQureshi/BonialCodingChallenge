@@ -34,6 +34,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -122,6 +123,8 @@ fun CharacterDetailScreen(
 @Composable
 private fun CharacterDetailContent(character: CharacterDetailUi) {
     var imageLoaded by remember { mutableStateOf(false) }
+    var contentVisible by remember { mutableStateOf(false) }
+    LaunchedEffect(Unit) { contentVisible = true }
 
     Column(
         modifier = Modifier
@@ -157,7 +160,7 @@ private fun CharacterDetailContent(character: CharacterDetailUi) {
 
         // Content card slides up after image
         AnimatedVisibility(
-            visible = true,
+            visible = contentVisible,
             enter = slideInVertically(
                 initialOffsetY = { it / 2 },
                 animationSpec = tween(durationMillis = 400),
