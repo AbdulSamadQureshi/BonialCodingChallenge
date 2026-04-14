@@ -5,6 +5,10 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
+    alias(libs.plugins.hilt)
+    alias(libs.plugins.ksp)
+    alias(libs.plugins.anvil)
+    alias(libs.plugins.kotlin.serialization)
 }
 
 android {
@@ -51,8 +55,8 @@ android {
         release {
             signingConfig = signingConfigs.getByName("release")
             isDebuggable = false
-            isMinifyEnabled = false
-            isShrinkResources = false
+            isMinifyEnabled = true
+            isShrinkResources = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
@@ -147,8 +151,11 @@ dependencies {
     implementation(libs.androidx.compose.material3)
     implementation(libs.androidx.compose.material.icons.extended)
     implementation(libs.androidx.compose.material3.adaptive.navigation.suite)
-    implementation(libs.koin.android)
-    implementation(libs.koin.androidx.compose)
+    implementation(libs.hilt.android)
+    ksp(libs.hilt.android.compiler)
+    implementation(libs.hilt.navigation.compose)
+    implementation(libs.navigation.compose)
+    implementation(libs.kotlinx.serialization.json)
 
     // Test dependencies
     testImplementation(libs.junit)

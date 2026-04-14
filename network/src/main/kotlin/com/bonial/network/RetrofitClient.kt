@@ -1,11 +1,8 @@
 package com.bonial.network
 
-import com.bonial.core.preferences.PreferenceKeys
-import com.bonial.core.preferences.SharedPrefsManager
-import com.bonial.domain.model.network.response.ContentWrapperDto
-import com.bonial.domain.utils.ContentWrapperDeserializer
+import com.bonial.core.preferences.UserPreferencesDataStore
 import com.google.gson.Gson
-import com.google.gson.GsonBuilder
+import kotlinx.coroutines.runBlocking
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
@@ -14,7 +11,7 @@ import retrofit2.converter.gson.GsonConverterFactory
 class RetrofitClient(
     private val baseUrl: String,
     private val enableLogging: Boolean,
-    private val sharedPrefsManager: SharedPrefsManager
+    private val userPreferencesDataStore: UserPreferencesDataStore,
 ) {
     private val okHttpClient: OkHttpClient by lazy {
         val loggingInterceptor = HttpLoggingInterceptor().apply {
@@ -33,28 +30,21 @@ class RetrofitClient(
                     .header("Content-Type", "application/json")
                     .header("Platform", "Android")
 
-                sharedPrefsManager.getStringValue(PreferenceKeys.KEY_ACCESS_TOKEN, "")?.let { token ->
-                    if (token.isNotEmpty()) {
-                        requestBuilder.header("Authorization", "Bearer $token")
-                    }
+                // runBlocking is acceptable here: OkHttp interceptors run on a background thread
+                val token = runBlocking { userPreferencesDataStore.getAccessToken() }
+                if (!token.isNullOrEmpty()) {
+                    requestBuilder.header("Authorization", "Bearer $token")
                 }
                 chain.proceed(requestBuilder.build())
             }
             .build()
     }
 
-    val gson: Gson = GsonBuilder()
-        .registerTypeAdapter(
-            ContentWrapperDto::class.java,
-            ContentWrapperDeserializer()
-        )
-        .create()
-
     val retrofit: Retrofit by lazy {
         Retrofit.Builder()
             .baseUrl(baseUrl)
             .client(okHttpClient)
-            .addConverterFactory(GsonConverterFactory.create(gson))
+            .addConverterFactory(GsonConverterFactory.create(Gson()))
             .build()
     }
 }

@@ -1,11 +1,8 @@
 package com.bonial.domain.useCase.brochures
 
 import app.cash.turbine.test
+import com.bonial.domain.model.Brochure
 import com.bonial.domain.model.network.response.ApiError
-import com.bonial.domain.model.network.response.BrochureDto
-import com.bonial.domain.model.network.response.BrochureResponseDto
-import com.bonial.domain.model.network.response.ContentWrapperDto
-import com.bonial.domain.model.network.response.EmbeddedDto
 import com.bonial.domain.model.network.response.Request
 import com.bonial.domain.repository.BrochuresRepository
 import com.google.common.truth.Truth.assertThat
@@ -27,27 +24,11 @@ class BrochuresUseCaseTest {
     }
 
     @Test
-    fun `invoke should emit success with filtered brochures`() = runBlocking {
+    fun `invoke should filter out brochures with distance greater than 5km`() = runBlocking {
         // Given
-        val brochure1 = BrochureDto(title = "Brochure 1", distance = 1.0)
-        val brochure2 = BrochureDto(title = "Brochure 2", distance = 6.0) // distance > 5.0
-        val brochure3 = BrochureDto(title = "Brochure 3", distance = 3.0)
-        val contentWrapper1 = ContentWrapperDto(contentType = "brochure", content = listOf(brochure1))
-        val contentWrapper2 = ContentWrapperDto(contentType = "brochure", content = listOf(brochure2))
-        val contentWrapper3 = ContentWrapperDto(contentType = "brochurePremium", content = listOf(brochure3))
-        val contentWrapper4 = ContentWrapperDto(contentType = "other", content = emptyList())
-        val responseDto = BrochureResponseDto(
-            embedded = EmbeddedDto(
-                contents = listOf(
-                    contentWrapper1,
-                    contentWrapper2,
-                    contentWrapper3,
-                    contentWrapper4
-                )
-            ),
-            page = null
-        )
-        val request = Request.Success(responseDto)
+        val nearbyBrochure = Brochure(title = "Nearby", coverUrl = null, distance = 1.0, publisherName = "P1", contentType = "brochure")
+        val farBrochure = Brochure(title = "Far", coverUrl = null, distance = 6.0, publisherName = "P2", contentType = "brochure")
+        val request = Request.Success(listOf(nearbyBrochure, farBrochure))
         whenever(brochuresRepository.brochures()).thenReturn(flowOf(request))
 
         // When
@@ -56,9 +37,44 @@ class BrochuresUseCaseTest {
         // Then
         result.test {
             val success = awaitItem() as Request.Success
-            val contents = success.data.embedded?.contents
-            assertThat(contents).isNotNull()
-            assertThat(contents!!).hasSize(4) // UseCase does not filter
+            assertThat(success.data).hasSize(1)
+            assertThat(success.data.first().title).isEqualTo("Nearby")
+            awaitComplete()
+        }
+    }
+
+    @Test
+    fun `invoke should filter out brochures with unsupported content type`() = runBlocking {
+        // Given
+        val brochureType = Brochure(title = "B1", coverUrl = null, distance = 1.0, publisherName = "P1", contentType = "brochure")
+        val premiumType = Brochure(title = "B2", coverUrl = null, distance = 1.0, publisherName = "P2", contentType = "brochurePremium")
+        val otherType = Brochure(title = "B3", coverUrl = null, distance = 1.0, publisherName = "P3", contentType = "coupon")
+        val request = Request.Success(listOf(brochureType, premiumType, otherType))
+        whenever(brochuresRepository.brochures()).thenReturn(flowOf(request))
+
+        // When
+        val result = brochuresUseCase.invoke(null)
+
+        // Then
+        result.test {
+            val success = awaitItem() as Request.Success
+            assertThat(success.data).hasSize(2)
+            assertThat(success.data.map { it.contentType }).containsExactly("brochure", "brochurePremium")
+            awaitComplete()
+        }
+    }
+
+    @Test
+    fun `invoke should emit Loading when repository emits Loading`() = runBlocking {
+        // Given
+        whenever(brochuresRepository.brochures()).thenReturn(flowOf(Request.Loading))
+
+        // When
+        val result = brochuresUseCase.invoke(null)
+
+        // Then
+        result.test {
+            assertThat(awaitItem()).isInstanceOf(Request.Loading::class.java)
             awaitComplete()
         }
     }
@@ -76,6 +92,26 @@ class BrochuresUseCaseTest {
         result.test {
             val errorResult = awaitItem() as Request.Error
             assertThat(errorResult.apiError?.message).isEqualTo("Network error")
+            awaitComplete()
+        }
+    }
+
+    @Test
+    fun `invoke should return empty list when no brochures are eligible`() = runBlocking {
+        // Given — all far away
+        val brochures = listOf(
+            Brochure(title = "Far1", coverUrl = null, distance = 10.0, publisherName = "P1", contentType = "brochure"),
+            Brochure(title = "Far2", coverUrl = null, distance = 8.0, publisherName = "P2", contentType = "brochurePremium"),
+        )
+        whenever(brochuresRepository.brochures()).thenReturn(flowOf(Request.Success(brochures)))
+
+        // When
+        val result = brochuresUseCase.invoke(null)
+
+        // Then
+        result.test {
+            val success = awaitItem() as Request.Success
+            assertThat(success.data).isEmpty()
             awaitComplete()
         }
     }

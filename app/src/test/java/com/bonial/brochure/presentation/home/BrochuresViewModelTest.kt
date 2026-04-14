@@ -6,6 +6,8 @@ import com.bonial.domain.model.Brochure
 import com.bonial.domain.model.network.response.ApiError
 import com.bonial.domain.model.network.response.Request
 import com.bonial.domain.useCase.brochures.BrochuresUseCase
+import com.bonial.domain.useCase.favourites.GetFavouriteCoverUrlsUseCase
+import com.bonial.domain.useCase.favourites.ToggleFavouriteUseCase
 import com.google.common.truth.Truth.assertThat
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -26,11 +28,14 @@ class BrochuresViewModelTest {
 
     private val testDispatcher = StandardTestDispatcher()
     private val brochuresUseCase: BrochuresUseCase = mock()
+    private val getFavouriteCoverUrlsUseCase: GetFavouriteCoverUrlsUseCase = mock()
+    private val toggleFavouriteUseCase: ToggleFavouriteUseCase = mock()
     private lateinit var viewModel: BrochuresViewModel
 
     @Before
     fun setUp() {
         Dispatchers.setMain(testDispatcher)
+        whenever(getFavouriteCoverUrlsUseCase()).thenReturn(flowOf(emptySet()))
     }
 
     @After
@@ -38,16 +43,22 @@ class BrochuresViewModelTest {
         Dispatchers.resetMain()
     }
 
+    private fun createViewModel() = BrochuresViewModel(
+        brochuresUseCase = brochuresUseCase,
+        getFavouriteCoverUrlsUseCase = getFavouriteCoverUrlsUseCase,
+        toggleFavouriteUseCase = toggleFavouriteUseCase,
+    )
+
     @Test
-    fun `viewModel init should update UI state to Success when use case returns data`() = runTest {
+    fun `init updates state to Success with brochures when use case returns data`() = runTest {
         // Given
         val brochures = listOf(
-            Brochure(title = "Test", coverUrl = "url", distance = 1.0, publisherName = "Pub", contentType = "brochure")
+            Brochure(title = "Test", coverUrl = "url", distance = 1.0, publisherName = "Pub", contentType = "brochure"),
         )
         whenever(brochuresUseCase.invoke(anyOrNull())).thenReturn(flowOf(Request.Success(brochures)))
 
         // When
-        viewModel = BrochuresViewModel(brochuresUseCase)
+        viewModel = createViewModel()
         testDispatcher.scheduler.advanceUntilIdle()
 
         // Then
@@ -60,12 +71,14 @@ class BrochuresViewModelTest {
     }
 
     @Test
-    fun `viewModel init should update UI state to Error when use case returns error`() = runTest {
+    fun `init updates state to Error when use case returns error`() = runTest {
         // Given
-        whenever(brochuresUseCase.invoke(anyOrNull())).thenReturn(flowOf(Request.Error(ApiError(code = "error", message = "Error message"))))
+        whenever(brochuresUseCase.invoke(anyOrNull())).thenReturn(
+            flowOf(Request.Error(ApiError(code = "error", message = "Error message"))),
+        )
 
         // When
-        viewModel = BrochuresViewModel(brochuresUseCase)
+        viewModel = createViewModel()
         testDispatcher.scheduler.advanceUntilIdle()
 
         // Then
@@ -73,6 +86,27 @@ class BrochuresViewModelTest {
             val state = awaitItem()
             assertThat(state).isInstanceOf(UiState.Error::class.java)
             assertThat((state as UiState.Error).message).isEqualTo("Error message")
+        }
+    }
+
+    @Test
+    fun `brochure isFavourite is true when coverUrl is in favourites set`() = runTest {
+        // Given
+        val coverUrl = "https://example.com/cover.jpg"
+        val brochures = listOf(
+            Brochure(title = "Fav", coverUrl = coverUrl, distance = 1.0, publisherName = "Pub", contentType = "brochure"),
+        )
+        whenever(brochuresUseCase.invoke(anyOrNull())).thenReturn(flowOf(Request.Success(brochures)))
+        whenever(getFavouriteCoverUrlsUseCase()).thenReturn(flowOf(setOf(coverUrl)))
+
+        // When
+        viewModel = createViewModel()
+        testDispatcher.scheduler.advanceUntilIdle()
+
+        // Then
+        viewModel.brochuresUiState.test {
+            val success = awaitItem() as UiState.Success
+            assertThat(success.data.first().isFavourite).isTrue()
         }
     }
 }

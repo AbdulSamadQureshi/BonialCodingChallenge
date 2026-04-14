@@ -2,7 +2,21 @@
   "permissions": {
     "allow": [
       "Bash(npm install:*)",
-      "Bash(claude:*)"
+      "Bash(claude:*)",
+      "Bash(xargs cat:*)",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:mvnrepository.com)",
+      "WebSearch",
+      "WebFetch(domain:blog.blundellapps.co.uk)",
+      "WebFetch(domain:medium.com)",
+      "WebFetch(domain:yalantis.com)",
+      "WebFetch(domain:rik-van-velzen.medium.com)",
+      "WebFetch(domain:dev.to)",
+      "WebFetch(domain:hceris.com)",
+      "Bash(git add:*)",
+      "Bash(git commit -m ':*)",
+      "Bash(rm /Users/abdulsamadqureshi/AndroidStudioProjects/BonialCodingChallenge/.git/worktrees/jolly-tharp/index.lock)",
+      "Bash(git -C /Users/abdulsamadqureshi/AndroidStudioProjects/BonialCodingChallenge/.claude/worktrees/jolly-tharp add -A)"
     ]
   }
 }
