@@ -18,14 +18,7 @@ class CharacterDetailUseCase @Inject constructor(
     private val repository: CharactersRepository,
 ) : BaseUseCase<Int, Flow<Request<CharacterDetail>>> {
 
-    override suspend fun invoke(params: Any?): Flow<Request<CharacterDetail>> {
-        val id = params as? Int
-            ?: return flowOf(Request.Error(ApiError(code = CODE_INVALID_ID, message = MSG_INVALID_ID)))
-        return repository.character(id)
-    }
-
-    private companion object {
-        const val CODE_INVALID_ID = "InvalidId"
-        const val MSG_INVALID_ID = "Character id is missing or invalid."
+    override suspend fun invoke(params: Int): Flow<Request<CharacterDetail>> {
+        return repository.character(params)
     }
 }

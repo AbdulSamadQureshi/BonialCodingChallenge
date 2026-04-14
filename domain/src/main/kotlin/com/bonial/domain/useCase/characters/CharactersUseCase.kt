@@ -18,12 +18,7 @@ class CharactersUseCase @Inject constructor(
     private val repository: CharactersRepository,
 ) : BaseUseCase<Int, Flow<Request<CharactersPage>>> {
 
-    override suspend fun invoke(params: Any?): Flow<Request<CharactersPage>> {
-        val page = params as? Int ?: DEFAULT_PAGE
-        return repository.characters(page)
-    }
-
-    private companion object {
-        const val DEFAULT_PAGE = 1
+    override suspend fun invoke(params: Int): Flow<Request<CharactersPage>> {
+        return repository.characters(params)
     }
 }

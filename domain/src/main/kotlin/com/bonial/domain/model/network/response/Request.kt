@@ -10,10 +10,7 @@ sealed class Request<out T> {
     data class Success<out T>(val data: T) : Request<T>()
 }
 
-@Parcelize
 data class ApiError(
-    @SerializedName("code")
     val code: String,
-    @SerializedName("message")
     val message: String,
-): Parcelable
+)

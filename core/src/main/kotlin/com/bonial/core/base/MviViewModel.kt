@@ -7,6 +7,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.receiveAsFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 /**
@@ -48,8 +49,7 @@ abstract class MviViewModel<S, I, E> : ViewModel() {
     }
 
     protected fun setState(reduce: S.() -> S) {
-        val newState = _uiState.value.reduce()
-        _uiState.value = newState
+        _uiState.update { it.reduce() }
     }
 
     protected fun setEffect(builder: () -> E) {
