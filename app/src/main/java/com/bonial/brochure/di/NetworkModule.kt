@@ -13,14 +13,12 @@ import javax.inject.Singleton
 @Module
 @InstallIn(SingletonComponent::class)
 object NetworkModule {
-
     @Provides
     @Singleton
-    fun provideRetrofit(userPreferencesDataStore: UserPreferencesDataStore): Retrofit {
-        return RetrofitClient(
+    fun provideRetrofit(userPreferencesDataStore: UserPreferencesDataStore): Retrofit =
+        RetrofitClient(
             baseUrl = BuildConfig.BASE_URL,
             enableLogging = BuildConfig.DEBUG,
             userPreferencesDataStore = userPreferencesDataStore,
         ).retrofit
-    }
 }

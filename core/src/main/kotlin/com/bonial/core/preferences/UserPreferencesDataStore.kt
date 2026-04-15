@@ -21,7 +21,7 @@ private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(na
  */
 @Singleton
 class UserPreferencesDataStore @Inject constructor(
-    @ApplicationContext private val context: Context,
+    @param:ApplicationContext private val context: Context,
 ) {
     private val dataStore = context.dataStore
 

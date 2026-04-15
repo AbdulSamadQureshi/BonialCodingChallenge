@@ -29,7 +29,6 @@ import org.mockito.kotlin.whenever
  */
 @OptIn(ExperimentalCoroutinesApi::class)
 class CharacterDetailViewModelTest {
-
     @get:Rule
     val mainDispatcherRule = MainDispatcherRule()
 
@@ -50,188 +49,196 @@ class CharacterDetailViewModelTest {
     // ------------------------------------------------------------------
 
     @Test
-    fun `successful load populates character state and clears loading`() = runTest {
-        givenSuccessResponse(CHARACTER_ID)
+    fun `successful load populates character state and clears loading`() =
+        runTest {
+            givenSuccessResponse(CHARACTER_ID)
 
-        viewModel().uiState.test {
-            var state = awaitItem()
-            while (state.isLoading || state.character == null) state = awaitItem()
+            viewModel().uiState.test {
+                var state = awaitItem()
+                while (state.isLoading || state.character == null) state = awaitItem()
 
-            assertThat(state.character?.id).isEqualTo(CHARACTER_ID)
-            assertThat(state.character?.name).isEqualTo("Rick Sanchez")
-            assertThat(state.isLoading).isFalse()
-            assertThat(state.error).isNull()
-            cancelAndIgnoreRemainingEvents()
+                assertThat(state.character.id).isEqualTo(CHARACTER_ID)
+                assertThat(state.character.name).isEqualTo("Rick Sanchez")
+                assertThat(state.isLoading).isFalse()
+                assertThat(state.error).isNull()
+                cancelAndIgnoreRemainingEvents()
+            }
         }
-    }
 
     @Test
-    fun `isFavourite is updated from the favourite flow after load`() = runTest {
-        givenSuccessResponse(CHARACTER_ID)
-        whenever(isFavouriteFlowUseCase(IMAGE_URL))
-            .thenReturn(MutableStateFlow(true))
+    fun `isFavourite is updated from the favourite flow after load`() =
+        runTest {
+            givenSuccessResponse(CHARACTER_ID)
+            whenever(isFavouriteFlowUseCase(IMAGE_URL))
+                .thenReturn(MutableStateFlow(true))
 
-        viewModel().uiState.test {
-            var state = awaitItem()
-            while (!state.isFavourite) state = awaitItem()
+            viewModel().uiState.test {
+                var state = awaitItem()
+                while (!state.isFavourite) state = awaitItem()
 
-            assertThat(state.isFavourite).isTrue()
-            cancelAndIgnoreRemainingEvents()
+                assertThat(state.isFavourite).isTrue()
+                cancelAndIgnoreRemainingEvents()
+            }
         }
-    }
 
     // ------------------------------------------------------------------
     // Error path
     // ------------------------------------------------------------------
 
     @Test
-    fun `api error sets error state and clears loading`() = runTest {
-        whenever(characterDetailUseCase(CHARACTER_ID)).thenReturn(
-            flowOf(Request.Error(ApiError("404", "Not found."))),
-        )
+    fun `api error sets error state and clears loading`() =
+        runTest {
+            whenever(characterDetailUseCase(CHARACTER_ID)).thenReturn(
+                flowOf(Request.Error(ApiError("404", "Not found."))),
+            )
 
-        viewModel().uiState.test {
-            var state = awaitItem()
-            while (state.isLoading) state = awaitItem()
+            viewModel().uiState.test {
+                var state = awaitItem()
+                while (state.isLoading) state = awaitItem()
 
-            assertThat(state.error).isEqualTo("Not found.")
-            assertThat(state.isLoading).isFalse()
-            assertThat(state.character).isNull()
-            cancelAndIgnoreRemainingEvents()
+                assertThat(state.error).isEqualTo("Not found.")
+                assertThat(state.isLoading).isFalse()
+                assertThat(state.character).isNull()
+                cancelAndIgnoreRemainingEvents()
+            }
         }
-    }
 
     // ------------------------------------------------------------------
     // Retry intent
     // ------------------------------------------------------------------
 
     @Test
-    fun `Retry intent re-fetches the character from the use case`() = runTest {
-        // First call → error; second call (triggered by Retry) → success.
-        whenever(characterDetailUseCase(CHARACTER_ID))
-            .thenReturn(flowOf(Request.Error(ApiError("500", "Server error"))))
-            .thenReturn(flowOf(Request.Success(characterDetail())))
-        // observeFavourite is called after a successful load.
-        whenever(isFavouriteFlowUseCase(IMAGE_URL)).thenReturn(MutableStateFlow(false))
+    fun `Retry intent re-fetches the character from the use case`() =
+        runTest {
+            // First call → error; second call (triggered by Retry) → success.
+            whenever(characterDetailUseCase(CHARACTER_ID))
+                .thenReturn(flowOf(Request.Error(ApiError("500", "Server error"))))
+                .thenReturn(flowOf(Request.Success(characterDetail())))
+            // observeFavourite is called after a successful load.
+            whenever(isFavouriteFlowUseCase(IMAGE_URL)).thenReturn(MutableStateFlow(false))
 
-        val vm = viewModel()
+            val vm = viewModel()
 
-        // Wait until error state is set by the initial load.
-        vm.uiState.test {
-            var state = awaitItem()
-            while (state.isLoading) state = awaitItem()
-            assertThat(state.error).isNotNull()
-            cancelAndIgnoreRemainingEvents()
+            // Wait until error state is set by the initial load.
+            vm.uiState.test {
+                var state = awaitItem()
+                while (state.isLoading) state = awaitItem()
+                assertThat(state.error).isNotNull()
+                cancelAndIgnoreRemainingEvents()
+            }
+
+            // Dispatch retry — the use case must be called a second time.
+            vm.sendIntent(CharacterDetailIntent.Retry)
+
+            vm.uiState.test {
+                var state = awaitItem()
+                while (state.isLoading || state.character == null) state = awaitItem()
+
+                assertThat(state.character.id).isEqualTo(CHARACTER_ID)
+                assertThat(state.error).isNull()
+                cancelAndIgnoreRemainingEvents()
+            }
+
+            verify(characterDetailUseCase, times(2)).invoke(CHARACTER_ID)
         }
-
-        // Dispatch retry — the use case must be called a second time.
-        vm.sendIntent(CharacterDetailIntent.Retry)
-
-        vm.uiState.test {
-            var state = awaitItem()
-            while (state.isLoading || state.character == null) state = awaitItem()
-
-            assertThat(state.character?.id).isEqualTo(CHARACTER_ID)
-            assertThat(state.error).isNull()
-            cancelAndIgnoreRemainingEvents()
-        }
-
-        verify(characterDetailUseCase, times(2)).invoke(CHARACTER_ID)
-    }
 
     @Test
-    fun `Retry intent resets error state and sets isLoading true before response`() = runTest {
-        whenever(characterDetailUseCase(CHARACTER_ID)).thenReturn(
-            flowOf(Request.Error(ApiError("503", "Unavailable"))),
-        )
+    fun `Retry intent resets error state and sets isLoading true before response`() =
+        runTest {
+            whenever(characterDetailUseCase(CHARACTER_ID)).thenReturn(
+                flowOf(Request.Error(ApiError("503", "Unavailable"))),
+            )
 
-        val vm = viewModel()
-        // Let initial load finish with error.
-        vm.uiState.test {
-            var state = awaitItem()
-            while (state.isLoading) state = awaitItem()
-            cancelAndIgnoreRemainingEvents()
+            val vm = viewModel()
+            // Let initial load finish with error.
+            vm.uiState.test {
+                var state = awaitItem()
+                while (state.isLoading) state = awaitItem()
+                cancelAndIgnoreRemainingEvents()
+            }
+
+            // On retry, state should briefly show isLoading = true and error = null.
+            // Because the use case still returns an error synchronously here,
+            // we just verify that the use case was called again (the guard reset works).
+            vm.sendIntent(CharacterDetailIntent.Retry)
+            verify(characterDetailUseCase, times(2)).invoke(CHARACTER_ID)
         }
-
-        // On retry, state should briefly show isLoading = true and error = null.
-        // Because the use case still returns an error synchronously here,
-        // we just verify that the use case was called again (the guard reset works).
-        vm.sendIntent(CharacterDetailIntent.Retry)
-        verify(characterDetailUseCase, times(2)).invoke(CHARACTER_ID)
-    }
 
     // ------------------------------------------------------------------
     // ToggleFavourite
     // ------------------------------------------------------------------
 
     @Test
-    fun `ToggleFavourite is a no-op when character has no imageUrl`() = runTest {
-        // Return a character with imageUrl = null so observeFavourite is never called.
-        whenever(characterDetailUseCase(CHARACTER_ID)).thenReturn(
-            flowOf(
-                Request.Success(
-                    CharacterDetail(CHARACTER_ID, "Ghost", "Alive", "Spirit", "Unknown", null, null, imageUrl = null),
+    fun `ToggleFavourite is a no-op when character has no imageUrl`() =
+        runTest {
+            // Return a character with imageUrl = null so observeFavourite is never called.
+            whenever(characterDetailUseCase(CHARACTER_ID)).thenReturn(
+                flowOf(
+                    Request.Success(
+                        CharacterDetail(CHARACTER_ID, "Ghost", "Alive", "Spirit", "Unknown", null, null, imageUrl = null),
+                    ),
                 ),
-            ),
-        )
+            )
 
-        val vm = viewModel()
-        vm.uiState.test {
-            var state = awaitItem()
-            while (state.isLoading) state = awaitItem()
-            cancelAndIgnoreRemainingEvents()
+            val vm = viewModel()
+            vm.uiState.test {
+                var state = awaitItem()
+                while (state.isLoading) state = awaitItem()
+                cancelAndIgnoreRemainingEvents()
+            }
+
+            vm.sendIntent(CharacterDetailIntent.ToggleFavourite)
+
+            // toggleFavouriteUseCase must never be invoked because imageUrl is null.
+            verify(toggleFavouriteUseCase, org.mockito.kotlin.never())
+                .invoke(org.mockito.kotlin.any(), org.mockito.kotlin.any())
         }
-
-        vm.sendIntent(CharacterDetailIntent.ToggleFavourite)
-
-        // toggleFavouriteUseCase must never be invoked because imageUrl is null.
-        verify(toggleFavouriteUseCase, org.mockito.kotlin.never())
-            .invoke(org.mockito.kotlin.any(), org.mockito.kotlin.any())
-    }
 
     // ------------------------------------------------------------------
     // ShareCharacter
     // ------------------------------------------------------------------
 
     @Test
-    fun `ShareCharacter emits Share effect with all character details`() = runTest {
-        givenSuccessResponse(CHARACTER_ID)
+    fun `ShareCharacter emits Share effect with all character details`() =
+        runTest {
+            givenSuccessResponse(CHARACTER_ID)
 
-        val vm = viewModel()
-        // Wait for character to load.
-        vm.uiState.test {
-            var state = awaitItem()
-            while (state.isLoading || state.character == null) state = awaitItem()
-            cancelAndIgnoreRemainingEvents()
-        }
+            val vm = viewModel()
+            // Wait for character to load.
+            vm.uiState.test {
+                var state = awaitItem()
+                while (state.isLoading || state.character == null) state = awaitItem()
+                cancelAndIgnoreRemainingEvents()
+            }
 
-        vm.effect.test {
-            vm.sendIntent(CharacterDetailIntent.ShareCharacter)
-            val effect = awaitItem()
-            assertThat(effect).isInstanceOf(CharacterDetailEffect.Share::class.java)
-            val shareText = (effect as CharacterDetailEffect.Share).text
-            assertThat(shareText).contains("Rick Sanchez")
-            assertThat(shareText).contains("Human")
-            assertThat(shareText).contains("Alive")
-            assertThat(shareText).contains(IMAGE_URL)
-            cancelAndIgnoreRemainingEvents()
+            vm.effect.test {
+                vm.sendIntent(CharacterDetailIntent.ShareCharacter)
+                val effect = awaitItem()
+                assertThat(effect).isInstanceOf(CharacterDetailEffect.Share::class.java)
+                val shareText = (effect as CharacterDetailEffect.Share).text
+                assertThat(shareText).contains("Rick Sanchez")
+                assertThat(shareText).contains("Human")
+                assertThat(shareText).contains("Alive")
+                assertThat(shareText).contains(IMAGE_URL)
+                cancelAndIgnoreRemainingEvents()
+            }
         }
-    }
 
     // ------------------------------------------------------------------
     // Helpers
     // ------------------------------------------------------------------
 
-    private fun characterDetail() = CharacterDetail(
-        id = CHARACTER_ID,
-        name = "Rick Sanchez",
-        status = "Alive",
-        species = "Human",
-        gender = "Male",
-        origin = "Earth",
-        location = "Citadel of Ricks",
-        imageUrl = IMAGE_URL,
-    )
+    private fun characterDetail() =
+        CharacterDetail(
+            id = CHARACTER_ID,
+            name = "Rick Sanchez",
+            status = "Alive",
+            species = "Human",
+            gender = "Male",
+            origin = "Earth",
+            location = "Citadel of Ricks",
+            imageUrl = IMAGE_URL,
+        )
 
     private suspend fun givenSuccessResponse(id: Int) {
         whenever(characterDetailUseCase(id)).thenReturn(flowOf(Request.Success(characterDetail())))

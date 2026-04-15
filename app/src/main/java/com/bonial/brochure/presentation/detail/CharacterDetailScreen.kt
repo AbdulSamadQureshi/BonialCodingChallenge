@@ -44,7 +44,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
@@ -59,7 +58,6 @@ import androidx.lifecycle.flowWithLifecycle
 import coil3.compose.AsyncImage
 import coil3.compose.AsyncImagePainter
 import coil3.request.ImageRequest
-import coil3.request.crossfade
 import coil3.request.crossfade
 import coil3.request.placeholder
 import com.bonial.brochure.R
@@ -90,10 +88,11 @@ fun CharacterDetailScreen(
             .collect { effect ->
                 when (effect) {
                     is CharacterDetailEffect.Share -> {
-                        val intent = Intent(Intent.ACTION_SEND).apply {
-                            type = "text/plain"
-                            putExtra(Intent.EXTRA_TEXT, effect.text)
-                        }
+                        val intent =
+                            Intent(Intent.ACTION_SEND).apply {
+                                type = "text/plain"
+                                putExtra(Intent.EXTRA_TEXT, effect.text)
+                            }
                         context.startActivity(Intent.createChooser(intent, null))
                     }
                 }
@@ -134,32 +133,36 @@ fun CharacterDetailScreen(
                     ) {
                         Icon(
                             imageVector = if (state.isFavourite) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder,
-                            contentDescription = stringResource(
-                                if (state.isFavourite) R.string.content_desc_unfavourite else R.string.content_desc_favourite,
-                            ),
+                            contentDescription =
+                                stringResource(
+                                    if (state.isFavourite) R.string.content_desc_unfavourite else R.string.content_desc_favourite,
+                                ),
                             tint = if (state.isFavourite) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.surface,
-                ),
+                colors =
+                    TopAppBarDefaults.topAppBarColors(
+                        containerColor = MaterialTheme.colorScheme.surface,
+                    ),
             )
         },
     ) { innerPadding ->
         Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding),
+            modifier =
+                Modifier
+                    .fillMaxSize()
+                    .padding(innerPadding),
             contentAlignment = Alignment.Center,
         ) {
             val character = state.character
             when {
                 state.isLoading -> CharacterDetailShimmer()
-                state.error != null -> ErrorMessage(
-                    message = state.error,
-                    onRetry = { viewModel.sendIntent(CharacterDetailIntent.Retry) },
-                )
+                state.error != null ->
+                    ErrorMessage(
+                        message = state.error,
+                        onRetry = { viewModel.sendIntent(CharacterDetailIntent.Retry) },
+                    )
                 character != null -> CharacterDetailContent(character = character)
             }
         }
@@ -173,40 +176,45 @@ fun CharacterDetailScreen(
 @Composable
 private fun CharacterDetailShimmer() {
     Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .testTag("detail_shimmer"),
+        modifier =
+            Modifier
+                .fillMaxSize()
+                .testTag("detail_shimmer"),
     ) {
         // Hero image placeholder
         Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .aspectRatio(1f)
-                .shimmerEffect(),
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .aspectRatio(1f)
+                    .shimmerEffect(),
         )
         // Metadata rows placeholder
         Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 20.dp, vertical = 16.dp),
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = CONTENT_PADDING.dp, vertical = CONTENT_SPACING_VERTICAL.dp),
         ) {
             // Name shimmer
             Box(
-                modifier = Modifier
-                    .fillMaxWidth(0.55f)
-                    .height(24.dp)
-                    .shimmerEffect(),
-            )
-            Spacer(modifier = Modifier.height(20.dp))
-            // Detail row shimmers
-            repeat(4) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(14.dp)
+                modifier =
+                    Modifier
+                        .fillMaxWidth(SHIMMER_NAME_WIDTH_FRACTION)
+                        .height(SHIMMER_NAME_HEIGHT.dp)
                         .shimmerEffect(),
+            )
+            Spacer(modifier = Modifier.height(CONTENT_SPACING_VERTICAL_LARGE.dp))
+            // Detail row shimmers
+            repeat(SHIMMER_DETAIL_ROW_COUNT) {
+                Box(
+                    modifier =
+                        Modifier
+                            .fillMaxWidth()
+                            .height(SHIMMER_DETAIL_ROW_HEIGHT.dp)
+                            .shimmerEffect(),
                 )
-                Spacer(modifier = Modifier.height(20.dp))
+                Spacer(modifier = Modifier.height(CONTENT_SPACING_VERTICAL_LARGE.dp))
             }
         }
     }
@@ -220,33 +228,38 @@ private fun CharacterDetailContent(character: CharacterDetailUi) {
     LaunchedEffect(Unit) { contentVisible = true }
 
     Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .verticalScroll(rememberScrollState()),
+        modifier =
+            Modifier
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState()),
     ) {
         // Hero image
         Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .aspectRatio(1f),
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .aspectRatio(1f),
         ) {
             // Shimmer shown while image is in-flight
             if (!imageLoaded && !imageError) {
                 Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .shimmerEffect(),
+                    modifier =
+                        Modifier
+                            .fillMaxSize()
+                            .shimmerEffect(),
                 )
             }
 
             // Actual image — placeholder_image shown by Coil while network is loading;
             // we track Success/Error to hide the shimmer and show the error overlay.
             AsyncImage(
-                model = ImageRequest.Builder(LocalContext.current)
-                    .data(character.imageUrl)
-                    .placeholder(R.drawable.placeholder_image)
-                    .crossfade(400)
-                    .build(),
+                model =
+                    ImageRequest
+                        .Builder(LocalContext.current)
+                        .data(character.imageUrl)
+                        .placeholder(R.drawable.placeholder_image)
+                        .crossfade(IMAGE_CROSSFADE_MS)
+                        .build(),
                 contentDescription = character.name,
                 modifier = Modifier.fillMaxSize(),
                 contentScale = ContentScale.Crop,
@@ -274,16 +287,18 @@ private fun CharacterDetailContent(character: CharacterDetailUi) {
         // Content card slides up after image
         AnimatedVisibility(
             visible = contentVisible,
-            enter = slideInVertically(
-                initialOffsetY = { it / 2 },
-                animationSpec = tween(durationMillis = 400),
-            ) + fadeIn(animationSpec = tween(durationMillis = 400)),
+            enter =
+                slideInVertically(
+                    initialOffsetY = { it / 2 },
+                    animationSpec = tween(durationMillis = ANIMATION_DURATION_MS),
+                ) + fadeIn(animationSpec = tween(durationMillis = ANIMATION_DURATION_MS)),
         ) {
             Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(MaterialTheme.colorScheme.surface)
-                    .padding(horizontal = 20.dp, vertical = 16.dp),
+                modifier =
+                    Modifier
+                        .fillMaxWidth()
+                        .background(MaterialTheme.colorScheme.surface)
+                        .padding(horizontal = CONTENT_PADDING.dp, vertical = CONTENT_SPACING_VERTICAL.dp),
             ) {
                 // Name + status row
                 Row(
@@ -303,7 +318,7 @@ private fun CharacterDetailContent(character: CharacterDetailUi) {
                     }
                 }
 
-                Spacer(modifier = Modifier.height(20.dp))
+                Spacer(modifier = Modifier.height(CONTENT_SPACING_VERTICAL_LARGE.dp))
 
                 character.species?.let { DetailRow(label = "Species", value = it) }
                 character.gender?.let { DetailRow(label = "Gender", value = it) }
@@ -315,24 +330,32 @@ private fun CharacterDetailContent(character: CharacterDetailUi) {
 }
 
 @Composable
-private fun StatusChip(status: String, modifier: Modifier = Modifier) {
+private fun StatusChip(
+    status: String,
+    modifier: Modifier = Modifier,
+) {
     val colors = status.toStatusColorSet()
     Row(
-        modifier = modifier
-            .background(color = colors.background, shape = CircleShape)
-            .padding(horizontal = 10.dp, vertical = 5.dp),
+        modifier =
+            modifier
+                .background(color = colors.background, shape = CircleShape)
+                .padding(
+                    horizontal = STATUS_CHIP_HORIZONTAL_PADDING.dp,
+                    vertical = STATUS_CHIP_VERTICAL_PADDING.dp,
+                ),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Box(
-            modifier = Modifier
-                .size(8.dp)
-                .clip(CircleShape)
-                .background(colors.dot),
+            modifier =
+                Modifier
+                    .size(STATUS_CHIP_DOT_SIZE.dp)
+                    .clip(CircleShape)
+                    .background(colors.dot),
         )
-        Spacer(modifier = Modifier.width(5.dp))
+        Spacer(modifier = Modifier.width(STATUS_CHIP_SPACING.dp))
         Text(
             text = status,
-            fontSize = 12.sp,
+            fontSize = STATUS_CHIP_FONT_SIZE.sp,
             fontWeight = FontWeight.SemiBold,
             color = colors.label,
         )
@@ -340,12 +363,16 @@ private fun StatusChip(status: String, modifier: Modifier = Modifier) {
 }
 
 @Composable
-private fun DetailRow(label: String, value: String) {
+private fun DetailRow(
+    label: String,
+    value: String,
+) {
     Column(modifier = Modifier.fillMaxWidth()) {
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = 10.dp),
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = DETAIL_ROW_VERTICAL_PADDING.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically,
         ) {
@@ -353,15 +380,34 @@ private fun DetailRow(label: String, value: String) {
                 text = label,
                 fontWeight = FontWeight.Medium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
-                fontSize = 14.sp,
+                fontSize = DETAIL_ROW_LABEL_FONT_SIZE.sp,
             )
             Text(
                 text = value,
-                fontSize = 14.sp,
+                fontSize = DETAIL_ROW_VALUE_FONT_SIZE.sp,
                 fontWeight = FontWeight.SemiBold,
                 color = MaterialTheme.colorScheme.onSurface,
             )
         }
-        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
+        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = DIVIDER_ALPHA))
     }
 }
+
+private const val IMAGE_CROSSFADE_MS = 400
+private const val ANIMATION_DURATION_MS = 400
+private const val CONTENT_PADDING = 20
+private const val CONTENT_SPACING_VERTICAL = 16
+private const val CONTENT_SPACING_VERTICAL_LARGE = 20
+private const val SHIMMER_NAME_WIDTH_FRACTION = 0.55f
+private const val SHIMMER_NAME_HEIGHT = 24
+private const val SHIMMER_DETAIL_ROW_COUNT = 4
+private const val SHIMMER_DETAIL_ROW_HEIGHT = 14
+private const val STATUS_CHIP_HORIZONTAL_PADDING = 10
+private const val STATUS_CHIP_VERTICAL_PADDING = 5
+private const val STATUS_CHIP_DOT_SIZE = 8
+private const val STATUS_CHIP_SPACING = 5
+private const val STATUS_CHIP_FONT_SIZE = 12
+private const val DETAIL_ROW_VERTICAL_PADDING = 10
+private const val DETAIL_ROW_LABEL_FONT_SIZE = 14
+private const val DETAIL_ROW_VALUE_FONT_SIZE = 14
+private const val DIVIDER_ALPHA = 0.5f

@@ -51,6 +51,7 @@ complexity:
     active: true
     threshold: 15
     ignoreSingleWhenExpression: true
+    ignoreAnnotated: ['Composable']
   LabeledExpression:
     active: false
   LargeClass:
@@ -59,9 +60,11 @@ complexity:
   LongMethod:
     active: true
     threshold: 60
+    ignoreAnnotated: ['Composable']
   LongParameterList:
     active: true
-    threshold: 6
+    functionThreshold: 6
+    constructorThreshold: 6
     ignoreDefaultParameters: true
     ignoreDataClasses: true
     ignoreAnnotated: ['Composable']
@@ -182,7 +185,6 @@ exceptions:
     active: false
   ThrowingExceptionsWithoutMessageOrCause:
     active: true
-    allowedExceptionNameRegex: '^(test.*|.*Test)$'
     exceptions:
       - 'ArrayIndexOutOfBoundsException'
       - 'Error'
@@ -215,162 +217,6 @@ exceptions:
       - 'Exception'
       - 'RuntimeException'
       - 'Throwable'
-
-formatting:
-  active: true
-  android: true
-  autoCorrect: true
-  AnnotationOnSeparateLine:
-    active: false
-  AnnotationSpacing:
-    active: false
-  ArgumentListWrapping:
-    active: false
-  ChainWrapping:
-    active: false
-  ClassName:
-    active: false
-  CommentSpacing:
-    active: true
-  CommentWrapping:
-    active: false
-  ContextReceiverMapping:
-    active: false
-  EnumEntryNameCase:
-    active: false
-  EnumWrapping:
-    active: false
-  Filename:
-    active: false
-  FinalNewline:
-    active: true
-    insertFinalNewline: true
-  FunKeywordSpacing:
-    active: false
-  FunctionName:
-    active: false
-  FunctionReturnTypeSpacing:
-    active: false
-  FunctionSignature:
-    active: false
-  FunctionStartOfBodySpacing:
-    active: false
-  FunctionTypeReferenceSpacing:
-    active: false
-  IfElseBracing:
-    active: false
-  IfElseWrapping:
-    active: false
-  ImportOrdering:
-    active: true
-  Indentation:
-    active: true
-    indentSize: 4
-  KdocWrapping:
-    active: false
-  MaximumLineLength:
-    active: true
-    maxLineLength: 140
-  ModifierListSpacing:
-    active: false
-  ModifierOrdering:
-    active: true
-  MultiLineIfElse:
-    active: false
-  MultilineExpressionWrapping:
-    active: false
-  NoBlankLineBeforeRbrace:
-    active: true
-  NoBlankLinesBetweenChainedFunctionCalls:
-    active: false
-  NoConsecutiveBlankLines:
-    active: true
-  NoEmptyClassBody:
-    active: true
-  NoEmptyFirstLineInClassBody:
-    active: false
-  NoEmptyFirstLineInMethodBlock:
-    active: false
-  NoLineBreakAfterElse:
-    active: true
-  NoLineBreakBeforeAssignment:
-    active: true
-  NoMultipleSpaces:
-    active: true
-  NoSemicolons:
-    active: true
-  NoSingleLineBlockComment:
-    active: false
-  NoTrailingWhitespace:
-    active: true
-  NoUnitReturn:
-    active: true
-  NoUnusedImports:
-    active: true
-  NoWildcardImports:
-    active: true
-  NullableTypeSpacing:
-    active: false
-  PackageName:
-    active: false
-  ParameterListSpacing:
-    active: false
-  ParameterListWrapping:
-    active: false
-  ParameterWrapping:
-    active: false
-  PropertyName:
-    active: false
-  PropertyWrapping:
-    active: false
-  SpacingAroundAngleBrackets:
-    active: false
-  SpacingAroundColon:
-    active: true
-  SpacingAroundComma:
-    active: true
-  SpacingAroundCurly:
-    active: true
-  SpacingAroundDot:
-    active: true
-  SpacingAroundDoubleColon:
-    active: false
-  SpacingAroundKeyword:
-    active: true
-  SpacingAroundOperators:
-    active: true
-  SpacingAroundParens:
-    active: true
-  SpacingAroundRangeOperator:
-    active: true
-  SpacingAroundUnaryOperator:
-    active: false
-  SpacingBetweenDeclarationsWithAnnotations:
-    active: false
-  SpacingBetweenDeclarationsWithComments:
-    active: false
-  SpacingBetweenFunctionNameAndOpeningParenthesis:
-    active: false
-  StringTemplate:
-    active: true
-  StringTemplateIndent:
-    active: false
-  TrailingCommaOnCallSite:
-    active: false
-  TrailingCommaOnDeclarationSite:
-    active: false
-  TryCatchFinallySpacing:
-    active: false
-  TypeArgumentComment:
-    active: false
-  TypeParameterComment:
-    active: false
-  TypeParameterListSpacing:
-    active: false
-  UnnecessaryParenthesesBeforeTrailingLambda:
-    active: false
-  Wrapping:
-    active: false
 
 naming:
   active: true
@@ -451,7 +297,6 @@ performance:
     active: true
   SpreadOperator:
     active: true
-    excludedClasses: ''
   UnnecessaryPartOfBinaryExpression:
     active: false
   UnnecessaryTemporaryInstantiation:
@@ -564,7 +409,7 @@ style:
     active: false
   ForbiddenComment:
     active: true
-    values:
+    comments:
       - reason: 'Forbidden FIXME todo marker in comment, please fix the problem.'
         value: 'FIXME:'
       - reason: 'Forbidden STOPSHIP todo marker in comment, please address the problem before shipping the code.'
@@ -582,7 +427,7 @@ style:
     active: true
     ignoreOverridableFunction: true
     ignoreActualFunction: true
-    excludedFunctions: ''
+    excludedFunctions: []
   LoopWithTooManyJumpStatements:
     active: true
     maxJumpCount: 1

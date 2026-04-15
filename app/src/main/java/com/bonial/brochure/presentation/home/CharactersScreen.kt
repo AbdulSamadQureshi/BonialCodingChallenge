@@ -39,8 +39,8 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.SearchBarDefaults
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SearchBarDefaults
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
@@ -65,7 +65,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -80,7 +79,6 @@ import coil3.request.crossfade
 import coil3.request.placeholder
 import com.bonial.brochure.R
 import com.bonial.brochure.presentation.model.CharacterUi
-import com.bonial.brochure.presentation.theme.CloseLoopWalletTheme
 import com.bonial.brochure.presentation.theme.toStatusColorSet
 import com.bonial.core.ui.extensions.shimmerEffect
 
@@ -103,9 +101,14 @@ fun CharactersScreen(
 
     val shouldLoadMore by remember(lazyGridState) {
         derivedStateOf {
-            val lastVisible = lazyGridState.layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: -1
+            val lastVisible =
+                lazyGridState
+                    .layoutInfo
+                    .visibleItemsInfo
+                    .lastOrNull()
+                    ?.index ?: -1
             val totalItems = lazyGridState.layoutInfo.totalItemsCount
-            lastVisible >= totalItems - 4 && totalItems > 0
+            lastVisible >= totalItems - PAGING_THRESHOLD && totalItems > 0
         }
     }
 
@@ -118,15 +121,17 @@ fun CharactersScreen(
             .flowWithLifecycle(lifecycleOwner.lifecycle, Lifecycle.State.STARTED)
             .collect { effect ->
                 when (effect) {
-                    is CharactersEffect.ShowError -> snackbarHostState.showSnackbar(effect.message)
+                    is CharactersEffect.ShowError ->
+                        snackbarHostState.showSnackbar(effect.message)
                 }
             }
     }
 
     Scaffold(
-        modifier = Modifier
-            .fillMaxSize()
-            .testTag("characters_screen"),
+        modifier =
+            Modifier
+                .fillMaxSize()
+                .testTag("characters_screen"),
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
         containerColor = MaterialTheme.colorScheme.background,
     ) { innerPadding ->
@@ -148,8 +153,18 @@ fun CharactersScreen(
                         },
                         trailingIcon = {
                             if (state.searchQuery.isNotEmpty()) {
-                                IconButton(onClick = { viewModel.sendIntent(CharactersIntent.Search("")) }) {
-                                    Icon(Icons.Default.Close, contentDescription = stringResource(R.string.content_desc_clear_search))
+                                IconButton(
+                                    onClick = {
+                                        viewModel.sendIntent(CharactersIntent.Search(""))
+                                    },
+                                ) {
+                                    Icon(
+                                        Icons.Default.Close,
+                                        contentDescription =
+                                            stringResource(
+                                                R.string.content_desc_clear_search,
+                                            ),
+                                    )
                                 }
                             }
                         },
@@ -157,41 +172,49 @@ fun CharactersScreen(
                 },
                 expanded = false,
                 onExpandedChange = {},
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp)
-                    .padding(
-                        top = innerPadding.calculateTopPadding() + 8.dp,
-                        bottom = 8.dp,
-                    ),
+                modifier =
+                    Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = GRID_SPACING.dp)
+                        .padding(
+                            top = innerPadding.calculateTopPadding() + SEARCH_BAR_TOP_PADDING.dp,
+                            bottom = SEARCH_BAR_BOTTOM_PADDING.dp,
+                        ),
             ) {}
 
             Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .weight(1f),
+                modifier =
+                    Modifier
+                        .fillMaxSize()
+                        .weight(1f),
                 contentAlignment = Alignment.Center,
             ) {
                 when {
                     state.isLoading || (state.isInitialLoading && state.characters.isEmpty()) -> {
                         CharactersLoadingGrid(bottomPadding = innerPadding.calculateBottomPadding())
                     }
-                    state.error != null && state.characters.isEmpty() -> ErrorMessage(
-                        message = state.error,
-                        onRetry = { viewModel.sendIntent(CharactersIntent.LoadCharacters) },
-                    )
-                    state.characters.isEmpty() && state.searchQuery.isNotBlank() -> EmptySearchState(query = state.searchQuery)
-                    state.characters.isEmpty() -> EmptyState()
-                    else -> CharactersGrid(
-                        characters = state.characters,
-                        isLoadingNextPage = state.isLoadingNextPage,
-                        lazyGridState = lazyGridState,
-                        onCharacterClick = onCharacterClick,
-                        onFavouriteClick = { character ->
-                            viewModel.sendIntent(CharactersIntent.ToggleFavourite(character))
-                        },
-                        bottomPadding = innerPadding.calculateBottomPadding(),
-                    )
+                    state.error != null && state.characters.isEmpty() ->
+                        ErrorMessage(
+                            message = state.error,
+                            onRetry = { viewModel.sendIntent(CharactersIntent.LoadCharacters) },
+                        )
+
+                    state.characters.isEmpty() && state.searchQuery.isNotBlank() ->
+                        EmptySearchState(query = state.searchQuery)
+
+                    state.characters.isEmpty() ->
+                        EmptyState()
+                    else ->
+                        CharactersGrid(
+                            characters = state.characters,
+                            isLoadingNextPage = state.isLoadingNextPage,
+                            lazyGridState = lazyGridState,
+                            onCharacterClick = onCharacterClick,
+                            onFavouriteClick = { character ->
+                                viewModel.sendIntent(CharactersIntent.ToggleFavourite(character))
+                            },
+                            bottomPadding = innerPadding.calculateBottomPadding(),
+                        )
                 }
             }
         }
@@ -201,18 +224,18 @@ fun CharactersScreen(
 @Composable
 fun EmptyState(modifier: Modifier = Modifier) {
     Column(
-        modifier = modifier.padding(32.dp),
+        modifier = modifier.padding(EMPTY_STATE_PADDING.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        Text(text = "🪐", fontSize = 48.sp)
-        Spacer(modifier = Modifier.height(16.dp))
+        Text(text = "🪐", fontSize = EMPTY_STATE_ICON_SIZE.sp)
+        Spacer(modifier = Modifier.height(VERTICAL_SPACER_LARGE.dp))
         Text(
             text = stringResource(R.string.empty_state_title),
             style = MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.Bold,
             textAlign = TextAlign.Center,
         )
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(VERTICAL_SPACER_SMALL.dp))
         Text(
             text = stringResource(R.string.empty_state_subtitle),
             style = MaterialTheme.typography.bodyMedium,
@@ -223,20 +246,23 @@ fun EmptyState(modifier: Modifier = Modifier) {
 }
 
 @Composable
-fun EmptySearchState(query: String, modifier: Modifier = Modifier) {
+fun EmptySearchState(
+    query: String,
+    modifier: Modifier = Modifier,
+) {
     Column(
-        modifier = modifier.padding(32.dp),
+        modifier = modifier.padding(EMPTY_STATE_PADDING.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        Text(text = "🔍", fontSize = 48.sp)
-        Spacer(modifier = Modifier.height(16.dp))
+        Text(text = "🔍", fontSize = EMPTY_STATE_ICON_SIZE.sp)
+        Spacer(modifier = Modifier.height(VERTICAL_SPACER_LARGE.dp))
         Text(
             text = stringResource(R.string.empty_search_title, query),
             style = MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.Bold,
             textAlign = TextAlign.Center,
         )
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(VERTICAL_SPACER_SMALL.dp))
         Text(
             text = stringResource(R.string.empty_search_subtitle),
             style = MaterialTheme.typography.bodyMedium,
@@ -249,13 +275,19 @@ fun EmptySearchState(query: String, modifier: Modifier = Modifier) {
 @Composable
 fun CharactersLoadingGrid(bottomPadding: Dp = 0.dp) {
     val configuration = LocalConfiguration.current
-    val columns = if (configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) 3 else 2
+    val columns = if (configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) GRID_COLUMNS_LANDSCAPE else GRID_COLUMNS_PORTRAIT
     LazyVerticalGrid(
         columns = GridCells.Fixed(columns),
-        contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 16.dp + bottomPadding),
+        contentPadding =
+            PaddingValues(
+                start = GRID_SPACING.dp,
+                end = GRID_SPACING.dp,
+                top = GRID_SPACING.dp,
+                bottom = GRID_SPACING.dp + bottomPadding,
+            ),
         modifier = Modifier.fillMaxSize(),
     ) {
-        items(10) { CharacterShimmerItem() }
+        items(SHIMMER_ITEM_COUNT) { CharacterShimmerItem() }
     }
 }
 
@@ -270,17 +302,27 @@ fun CharactersGrid(
     bottomPadding: Dp = 0.dp,
 ) {
     val configuration = LocalConfiguration.current
-    val columns = if (configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) 3 else 2
+    val columns = if (configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) GRID_COLUMNS_LANDSCAPE else GRID_COLUMNS_PORTRAIT
 
     LazyVerticalGrid(
         state = lazyGridState,
         columns = GridCells.Fixed(columns),
-        contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 16.dp + bottomPadding),
-        modifier = modifier
-            .fillMaxSize()
-            .testTag("characters_grid"),
+        contentPadding =
+            PaddingValues(
+                start = GRID_SPACING.dp,
+                end = GRID_SPACING.dp,
+                top = GRID_SPACING.dp,
+                bottom = GRID_SPACING.dp + bottomPadding,
+            ),
+        modifier =
+            modifier
+                .fillMaxSize()
+                .testTag("characters_grid"),
     ) {
-        items(items = characters, key = { it.id }) { character ->
+        items(
+            items = characters,
+            key = { it.id },
+        ) { character ->
             CharacterItem(
                 name = character.name,
                 status = character.status,
@@ -294,13 +336,14 @@ fun CharactersGrid(
         if (isLoadingNextPage) {
             item(span = { GridItemSpan(maxLineSpan) }) {
                 Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 16.dp)
-                        .testTag("next_page_loading"),
+                    modifier =
+                        Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = GRID_SPACING.dp)
+                            .testTag("next_page_loading"),
                     contentAlignment = Alignment.Center,
                 ) {
-                    CircularProgressIndicator(modifier = Modifier.size(32.dp))
+                    CircularProgressIndicator(modifier = Modifier.size(LOADING_INDICATOR_SIZE.dp))
                 }
             }
         }
@@ -314,7 +357,7 @@ fun ErrorMessage(
     modifier: Modifier = Modifier,
 ) {
     Column(
-        modifier = modifier.padding(24.dp),
+        modifier = modifier.padding(ERROR_MESSAGE_PADDING.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Text(
@@ -323,7 +366,7 @@ fun ErrorMessage(
             textAlign = TextAlign.Center,
         )
         if (onRetry != null) {
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(VERTICAL_SPACER_LARGE.dp))
             Button(onClick = onRetry) {
                 Text(text = stringResource(R.string.label_retry))
             }
@@ -346,27 +389,32 @@ fun CharacterItem(
     val interactionSource = remember { MutableInteractionSource() }
     val isPressed by interactionSource.collectIsPressedAsState()
     val scale by animateFloatAsState(
-        targetValue = if (isPressed) 0.94f else 1f,
-        animationSpec = spring(
-            dampingRatio = Spring.DampingRatioMediumBouncy,
-            stiffness = Spring.StiffnessMediumLow,
-        ),
+        targetValue = if (isPressed) CARD_PRESSED_SCALE else 1f,
+        animationSpec =
+            spring(
+                dampingRatio = Spring.DampingRatioMediumBouncy,
+                stiffness = Spring.StiffnessMediumLow,
+            ),
         label = "card_scale",
     )
 
     Card(
         onClick = onClick,
         interactionSource = interactionSource,
-        modifier = modifier
-            .padding(8.dp)
-            .fillMaxWidth()
-            .graphicsLayer { scaleX = scale; scaleY = scale }
-            .testTag("character_item"),
+        modifier =
+            modifier
+                .padding(CARD_PADDING.dp)
+                .fillMaxWidth()
+                .graphicsLayer {
+                    scaleX = scale
+                    scaleY = scale
+                }.testTag("character_item"),
     ) {
         Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .aspectRatio(0.7f),
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .aspectRatio(ASPECT_RATIO_CHARACTER),
         ) {
             CharacterImage(
                 imageUrl = imageUrl,
@@ -381,7 +429,10 @@ fun CharacterItem(
             if (!status.isNullOrBlank() && !isLoading && !isError) {
                 StatusBadge(
                     status = status,
-                    modifier = Modifier.align(Alignment.TopStart).padding(8.dp),
+                    modifier =
+                        Modifier
+                            .align(Alignment.TopStart)
+                            .padding(CARD_PADDING.dp),
                 )
             }
             FavouriteButton(
@@ -400,22 +451,34 @@ fun CharacterItem(
 }
 
 @Composable
-private fun StatusBadge(status: String, modifier: Modifier = Modifier) {
+private fun StatusBadge(
+    status: String,
+    modifier: Modifier = Modifier,
+) {
     val colors = status.toStatusColorSet()
     Row(
-        modifier = modifier
-            .background(
-                color = Color.Black.copy(alpha = 0.55f),
-                shape = MaterialTheme.shapes.small,
-            )
-            .padding(horizontal = 6.dp, vertical = 3.dp),
+        modifier =
+            modifier
+                .background(
+                    color = Color.Black.copy(alpha = STATUS_BADGE_ALPHA),
+                    shape = MaterialTheme.shapes.small,
+                ).padding(
+                    horizontal = STATUS_BADGE_HORIZONTAL_PADDING.dp,
+                    vertical = STATUS_BADGE_VERTICAL_PADDING.dp,
+                ),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Box(modifier = Modifier.size(7.dp).clip(CircleShape).background(colors.dot))
-        Spacer(modifier = Modifier.width(4.dp))
+        Box(
+            modifier =
+                Modifier
+                    .size(STATUS_BADGE_DOT_SIZE.dp)
+                    .clip(CircleShape)
+                    .background(colors.dot),
+        )
+        Spacer(modifier = Modifier.width(STATUS_BADGE_SPACING.dp))
         Text(
             text = status,
-            fontSize = 10.sp,
+            fontSize = STATUS_BADGE_FONT_SIZE.sp,
             fontWeight = FontWeight.Medium,
             color = Color.White,
             maxLines = 1,
@@ -432,9 +495,10 @@ private fun FavouriteButton(
     IconButton(onClick = onToggle, modifier = modifier) {
         Icon(
             imageVector = if (isFavourite) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder,
-            contentDescription = stringResource(
-                if (isFavourite) R.string.content_desc_unfavourite else R.string.content_desc_favourite,
-            ),
+            contentDescription =
+                stringResource(
+                    if (isFavourite) R.string.content_desc_unfavourite else R.string.content_desc_favourite,
+                ),
             tint = if (isFavourite) MaterialTheme.colorScheme.error else Color.White,
         )
     }
@@ -448,12 +512,16 @@ fun CharacterImage(
     modifier: Modifier = Modifier,
 ) {
     AsyncImage(
-        model = ImageRequest.Builder(LocalContext.current)
-            .data(imageUrl)
-            .placeholder(R.drawable.placeholder_image)
-            .crossfade(true)
-            .build(),
-        contentDescription = contentDescription ?: stringResource(R.string.content_desc_character_image),
+        model =
+            ImageRequest
+                .Builder(LocalContext.current)
+                .data(imageUrl)
+                .placeholder(R.drawable.placeholder_image)
+                .crossfade(true)
+                .build(),
+        contentDescription =
+            contentDescription
+                ?: stringResource(R.string.content_desc_character_image),
         onState = onStateChanged,
         modifier = modifier.fillMaxSize(),
         contentScale = ContentScale.Crop,
@@ -463,23 +531,26 @@ fun CharacterImage(
 @Composable
 fun ImageErrorPlaceholder(modifier: Modifier = Modifier) {
     Box(
-        modifier = modifier
-            .fillMaxSize()
-            .testTag("error_placeholder")
-            .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f)),
+        modifier =
+            modifier
+                .fillMaxSize()
+                .testTag("error_placeholder")
+                .background(
+                    MaterialTheme.colorScheme.surfaceVariant.copy(alpha = IMAGE_ERROR_ALPHA),
+                ),
         contentAlignment = Alignment.Center,
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             AsyncImage(
                 model = R.drawable.placeholder_error,
                 contentDescription = null,
-                modifier = Modifier.size(48.dp),
+                modifier = Modifier.size(IMAGE_ERROR_ICON_SIZE.dp),
                 contentScale = ContentScale.Fit,
             )
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(VERTICAL_SPACER_SMALL.dp))
             Text(
                 text = stringResource(R.string.error_image_unavailable),
-                fontSize = 12.sp,
+                fontSize = IMAGE_ERROR_TEXT_SIZE.sp,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 fontWeight = FontWeight.Medium,
             )
@@ -488,22 +559,34 @@ fun ImageErrorPlaceholder(modifier: Modifier = Modifier) {
 }
 
 @Composable
-fun CharacterNameOverlay(name: String, modifier: Modifier = Modifier) {
+fun CharacterNameOverlay(
+    name: String,
+    modifier: Modifier = Modifier,
+) {
     Box(
-        modifier = modifier
-            .fillMaxWidth()
-            .background(
-                Brush.verticalGradient(
-                    colors = listOf(Color.Transparent, Color.Black.copy(alpha = 0.75f)),
-                    startY = 0f,
+        modifier =
+            modifier
+                .fillMaxWidth()
+                .background(
+                    Brush.verticalGradient(
+                        colors =
+                            listOf(
+                                Color.Transparent,
+                                Color.Black.copy(alpha = NAME_OVERLAY_ALPHA),
+                            ),
+                        startY = 0f,
+                    ),
+                ).padding(
+                    top = NAME_OVERLAY_TOP_PADDING.dp,
+                    start = CARD_PADDING.dp,
+                    end = CARD_PADDING.dp,
+                    bottom = CARD_PADDING.dp,
                 ),
-            )
-            .padding(top = 24.dp, start = 8.dp, end = 8.dp, bottom = 8.dp),
     ) {
         Text(
             text = name,
             color = Color.White,
-            fontSize = 12.sp,
+            fontSize = NAME_OVERLAY_FONT_SIZE.sp,
             fontWeight = FontWeight.Bold,
             maxLines = 2,
             overflow = TextOverflow.Ellipsis,
@@ -514,31 +597,43 @@ fun CharacterNameOverlay(name: String, modifier: Modifier = Modifier) {
 @Composable
 fun CharacterShimmerItem(modifier: Modifier = Modifier) {
     Card(
-        modifier = modifier.padding(8.dp).fillMaxWidth(),
+        modifier = modifier.padding(CARD_PADDING.dp).fillMaxWidth(),
     ) {
         Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .aspectRatio(0.7f)
-                .shimmerEffect(),
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .aspectRatio(ASPECT_RATIO_CHARACTER)
+                    .shimmerEffect(),
         )
     }
 }
 
-@Preview(showBackground = true)
-@Composable
-private fun CharactersGridPreview() {
-    CloseLoopWalletTheme {
-        val mockData = listOf(
-            CharacterUi(id = 1, name = "Rick Sanchez", status = "Alive", species = "Human", imageUrl = null, isFavourite = false),
-            CharacterUi(id = 2, name = "Morty Smith", status = "Dead", species = "Human", imageUrl = null, isFavourite = true),
-        )
-        CharactersGrid(
-            characters = mockData,
-            isLoadingNextPage = false,
-            lazyGridState = rememberLazyGridState(),
-            onCharacterClick = {},
-            onFavouriteClick = {},
-        )
-    }
-}
+private const val PAGING_THRESHOLD = 4
+private const val SHIMMER_ITEM_COUNT = 10
+private const val GRID_SPACING = 16
+private const val SEARCH_BAR_TOP_PADDING = 8
+private const val SEARCH_BAR_BOTTOM_PADDING = 8
+private const val EMPTY_STATE_PADDING = 32
+private const val EMPTY_STATE_ICON_SIZE = 48
+private const val VERTICAL_SPACER_LARGE = 16
+private const val VERTICAL_SPACER_SMALL = 8
+private const val ERROR_MESSAGE_PADDING = 24
+private const val CARD_PRESSED_SCALE = 0.94f
+private const val ASPECT_RATIO_CHARACTER = 0.7f
+private const val STATUS_BADGE_ALPHA = 0.55f
+private const val STATUS_BADGE_DOT_SIZE = 7
+private const val STATUS_BADGE_HORIZONTAL_PADDING = 6
+private const val STATUS_BADGE_VERTICAL_PADDING = 3
+private const val STATUS_BADGE_SPACING = 4
+private const val STATUS_BADGE_FONT_SIZE = 10
+private const val IMAGE_ERROR_ALPHA = 0.4f
+private const val IMAGE_ERROR_ICON_SIZE = 48
+private const val IMAGE_ERROR_TEXT_SIZE = 12
+private const val NAME_OVERLAY_ALPHA = 0.75f
+private const val NAME_OVERLAY_TOP_PADDING = 24
+private const val NAME_OVERLAY_FONT_SIZE = 12
+private const val LOADING_INDICATOR_SIZE = 32
+private const val CARD_PADDING = 8
+private const val GRID_COLUMNS_LANDSCAPE = 3
+private const val GRID_COLUMNS_PORTRAIT = 2

@@ -22,8 +22,24 @@ data class StatusColorSet(
  * Maps a raw status string (case-insensitive) to its [StatusColorSet].
  * Unknown or null values fall back to the neutral grey palette.
  */
-fun String?.toStatusColorSet(): StatusColorSet = when (this?.lowercase()) {
-    "alive" -> StatusColorSet(dot = StatusAlive, background = StatusAliveBg, label = StatusAliveText)
-    "dead"  -> StatusColorSet(dot = StatusDead,  background = StatusDeadBg,  label = StatusDeadText)
-    else    -> StatusColorSet(dot = StatusUnknown, background = StatusUnknownBg, label = StatusUnknownText)
-}
+fun String?.toStatusColorSet(): StatusColorSet =
+    when (this?.lowercase()) {
+        "alive" ->
+            StatusColorSet(
+                dot = StatusAlive,
+                background = StatusAliveBg,
+                label = StatusAliveText,
+            )
+        "dead" ->
+            StatusColorSet(
+                dot = StatusDead,
+                background = StatusDeadBg,
+                label = StatusDeadText,
+            )
+        else ->
+            StatusColorSet(
+                dot = StatusUnknown,
+                background = StatusUnknownBg,
+                label = StatusUnknownText,
+            )
+    }

@@ -32,4 +32,3 @@ val StatusUnknownBg = Color(0xFFF5F5F5)
 val StatusAliveText = Color(0xFF2E7D32)
 val StatusDeadText = Color(0xFFC62828)
 val StatusUnknownText = Color(0xFF616161)
-

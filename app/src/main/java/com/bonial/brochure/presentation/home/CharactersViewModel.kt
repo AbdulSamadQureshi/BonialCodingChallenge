@@ -36,156 +36,187 @@ data class CharactersState(
 )
 
 sealed class CharactersIntent {
-    object LoadCharacters : CharactersIntent()
-    object LoadNextPage : CharactersIntent()
-    data class ToggleFavourite(val character: CharacterUi) : CharactersIntent()
-    data class Search(val query: String) : CharactersIntent()
+    data object LoadCharacters : CharactersIntent()
+
+    data object LoadNextPage : CharactersIntent()
+
+    data class ToggleFavourite(
+        val character: CharacterUi,
+    ) : CharactersIntent()
+
+    data class Search(
+        val query: String,
+    ) : CharactersIntent()
 }
 
 sealed class CharactersEffect {
-    data class ShowError(val message: String) : CharactersEffect()
+    data class ShowError(
+        val message: String,
+    ) : CharactersEffect()
 }
 
 @OptIn(FlowPreview::class)
 @HiltViewModel
-class CharactersViewModel @Inject constructor(
-    private val charactersUseCase: CharactersUseCase,
-    private val getFavouriteCoverUrlsUseCase: GetFavouriteCoverUrlsUseCase,
-    private val toggleFavouriteUseCase: ToggleFavouriteUseCase,
-) : MviViewModel<CharactersState, CharactersIntent, CharactersEffect>() {
+class CharactersViewModel
+    @Inject
+    constructor(
+        private val charactersUseCase: CharactersUseCase,
+        private val getFavouriteCoverUrlsUseCase: GetFavouriteCoverUrlsUseCase,
+        private val toggleFavouriteUseCase: ToggleFavouriteUseCase,
+    ) : MviViewModel<CharactersState, CharactersIntent, CharactersEffect>() {
+        private val searchQueryFlow = MutableStateFlow("")
 
-    private val searchQueryFlow = MutableStateFlow("")
+        override fun createInitialState(): CharactersState = CharactersState()
 
-    override fun createInitialState(): CharactersState = CharactersState()
-
-    init {
-        observeSearchAndFavourites()
-        sendIntent(CharactersIntent.LoadCharacters)
-    }
-
-    override fun handleIntent(intent: CharactersIntent) {
-        when (intent) {
-            is CharactersIntent.LoadCharacters -> {
-                searchQueryFlow.update { it } // Trigger search with current query
-            }
-            is CharactersIntent.LoadNextPage -> {
-                val state = uiState.value
-                if (!state.isLoadingNextPage && state.currentPage < state.totalPages) {
-                    loadNextPage(page = state.currentPage + 1, query = state.searchQuery)
-                }
-            }
-            is CharactersIntent.ToggleFavourite -> toggleFavourite(intent.character)
-            is CharactersIntent.Search -> {
-                setState {
-                    copy(
-                        searchQuery = intent.query,
-                        characters = emptyList(),
-                        isLoading = true,
-                        error = null
-                    )
-                }
-                searchQueryFlow.value = intent.query
-            }
+        init {
+            observeSearchAndFavourites()
+            sendIntent(CharactersIntent.LoadCharacters)
         }
-    }
 
-    @OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
-    private fun observeSearchAndFavourites() {
-        viewModelScope.launch {
-            combine(
-                searchQueryFlow
-                    .debounce { query -> if (query.isEmpty()) 0L else 500L }
-                    .distinctUntilChanged(),
-                getFavouriteCoverUrlsUseCase(),
-            ) { query, favouriteUrls ->
-                query to favouriteUrls
-            }.flatMapLatest { (query, favouriteUrls) ->
-                val sanitizedQuery = query.ifBlank { null }
-
-                charactersUseCase(CharactersParams(page = 1, name = sanitizedQuery))
-                    .map { response -> response to favouriteUrls }
-            }.collect { (response, savedFavourites) ->
-                handleResponse(response, savedFavourites, isNextPage = false, page = 1)
-            }
-        }
-    }
-
-    private fun loadNextPage(page: Int, query: String?) {
-        val sanitizedQuery = query?.ifBlank { null }
-        viewModelScope.launch {
-            setState { copy(isLoadingNextPage = true) }
-
-            val savedFavourites = getFavouriteCoverUrlsUseCase().first()
-
-            charactersUseCase(CharactersParams(page, sanitizedQuery)).collectLatest { response ->
-                handleResponse(response, savedFavourites, isNextPage = true, page = page)
-            }
-        }
-    }
-
-    private fun handleResponse(
-        response: Request<CharactersPage>,
-        savedFavourites: Set<String>,
-        isNextPage: Boolean,
-        page: Int
-    ) {
-        when (response) {
-            is Request.Loading -> {
-                setState {
-                    copy(
-                        isLoading = if (isNextPage) isLoading else true,
-                        isLoadingNextPage = isNextPage
-                    )
-                }
-            }
-            is Request.Success -> {
-                val newItems = response.data.characters.map { character ->
-                    CharacterUi(
-                        id = character.id,
-                        name = character.name,
-                        status = character.status,
-                        species = character.species,
-                        imageUrl = character.imageUrl,
-                        isFavourite = character.imageUrl != null && character.imageUrl in savedFavourites,
-                    )
-                }
-                setState {
-                    copy(
-                        characters = if (isNextPage) characters + newItems else newItems,
-                        isLoading = false,
-                        isLoadingNextPage = false,
-                        currentPage = page,
-                        totalPages = response.data.totalPages,
-                        error = null,
-                        isInitialLoading = false,
-                    )
-                }
-            }
-            is Request.Error -> {
-                val isNoResults = response.apiError?.code == "404"
-                val message = response.apiError.toErrorMessage()
-
-                setState {
-                    copy(
-                        characters = if (!isNextPage && isNoResults) emptyList() else characters,
-                        isLoading = false,
-                        isLoadingNextPage = false,
-                        error = if (isNoResults) null else message,
-                        isInitialLoading = false,
-                    )
+        override fun handleIntent(intent: CharactersIntent) {
+            when (intent) {
+                is CharactersIntent.LoadCharacters -> {
+                    searchQueryFlow.update { it } // Trigger search with current query
                 }
 
-                if (!isNoResults) {
-                    setEffect { CharactersEffect.ShowError(message) }
+                is CharactersIntent.LoadNextPage -> {
+                    val state = uiState.value
+                    if (!state.isLoadingNextPage && state.currentPage < state.totalPages) {
+                        loadNextPage(
+                            page = state.currentPage + 1,
+                            query = state.searchQuery,
+                        )
+                    }
+                }
+
+                is CharactersIntent.ToggleFavourite -> toggleFavourite(intent.character)
+
+                is CharactersIntent.Search -> {
+                    setState {
+                        copy(
+                            searchQuery = intent.query,
+                            characters = emptyList(),
+                            isLoading = true,
+                            error = null,
+                        )
+                    }
+                    searchQueryFlow.value = intent.query
                 }
             }
         }
-    }
 
-    private fun toggleFavourite(character: CharacterUi) {
-        val imageUrl = character.imageUrl ?: return
-        viewModelScope.launch {
-            toggleFavouriteUseCase(imageUrl, character.isFavourite)
+        @OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
+        private fun observeSearchAndFavourites() {
+            viewModelScope.launch {
+                combine(
+                    searchQueryFlow
+                        .debounce { query -> if (query.isEmpty()) 0L else SEARCH_DEBOUNCE_MS }
+                        .distinctUntilChanged(),
+                    getFavouriteCoverUrlsUseCase(),
+                ) { query, favouriteUrls ->
+                    query to favouriteUrls
+                }.flatMapLatest { (query, favouriteUrls) ->
+                    val sanitizedQuery = query.ifBlank { null }
+
+                    charactersUseCase(CharactersParams(page = 1, name = sanitizedQuery))
+                        .map { response -> response to favouriteUrls }
+                }.collect { (response, savedFavourites) ->
+                    handleResponse(
+                        response = response,
+                        savedFavourites = savedFavourites,
+                        isNextPage = false,
+                        page = 1,
+                    )
+                }
+            }
+        }
+
+        private fun loadNextPage(
+            page: Int,
+            query: String?,
+        ) {
+            val sanitizedQuery = query?.ifBlank { null }
+            viewModelScope.launch {
+                setState { copy(isLoadingNextPage = true) }
+
+                val savedFavourites = getFavouriteCoverUrlsUseCase().first()
+
+                charactersUseCase(CharactersParams(page, sanitizedQuery)).collectLatest { response ->
+                    handleResponse(response, savedFavourites, isNextPage = true, page = page)
+                }
+            }
+        }
+
+        private fun handleResponse(
+            response: Request<CharactersPage>,
+            savedFavourites: Set<String>,
+            isNextPage: Boolean,
+            page: Int,
+        ) {
+            when (response) {
+                is Request.Loading -> {
+                    setState {
+                        copy(
+                            isLoading = if (isNextPage) isLoading else true,
+                            isLoadingNextPage = isNextPage,
+                        )
+                    }
+                }
+                is Request.Success -> {
+                    val newItems =
+                        response.data.characters.map { character ->
+                            CharacterUi(
+                                id = character.id,
+                                name = character.name,
+                                status = character.status,
+                                species = character.species,
+                                imageUrl = character.imageUrl,
+                                isFavourite =
+                                    character.imageUrl != null &&
+                                        character.imageUrl in savedFavourites,
+                            )
+                        }
+                    setState {
+                        copy(
+                            characters = if (isNextPage) characters + newItems else newItems,
+                            isLoading = false,
+                            isLoadingNextPage = false,
+                            currentPage = page,
+                            totalPages = response.data.totalPages,
+                            error = null,
+                            isInitialLoading = false,
+                        )
+                    }
+                }
+                is Request.Error -> {
+                    val isNoResults = response.apiError?.code == "404"
+                    val message = response.apiError.toErrorMessage()
+
+                    setState {
+                        copy(
+                            characters = if (!isNextPage && isNoResults) emptyList() else characters,
+                            isLoading = false,
+                            isLoadingNextPage = false,
+                            error = if (isNoResults) null else message,
+                            isInitialLoading = false,
+                        )
+                    }
+
+                    if (!isNoResults) {
+                        setEffect { CharactersEffect.ShowError(message) }
+                    }
+                }
+            }
+        }
+
+        private fun toggleFavourite(character: CharacterUi) {
+            val imageUrl = character.imageUrl ?: return
+            viewModelScope.launch {
+                toggleFavouriteUseCase(imageUrl, character.isFavourite)
+            }
+        }
+
+        companion object {
+            private const val SEARCH_DEBOUNCE_MS = 500L
         }
     }
-}

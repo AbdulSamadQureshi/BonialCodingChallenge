@@ -38,14 +38,18 @@ import org.robolectric.annotation.GraphicsMode
 // sdk pinned because Robolectric's bundled frameworks trail the project's targetSdk.
 @Config(sdk = [34], qualifiers = "w360dp-h640dp-normal-long-notround-any-420dpi-keyshidden-nonav")
 class ThemeColorsScreenshotTest {
-
     @get:Rule
     val composeRule = createComposeRule()
 
     @Test
     fun statusPalette() {
         composeRule.setContent {
-            Column(modifier = Modifier.background(Color.White).padding(16.dp)) {
+            Column(
+                modifier =
+                    Modifier
+                        .background(Color.White)
+                        .padding(16.dp),
+            ) {
                 ListBadgeRow("Alive", StatusAlive)
                 Spacer(Modifier.height(8.dp))
                 ListBadgeRow("Dead", StatusDead)
@@ -63,20 +67,25 @@ class ThemeColorsScreenshotTest {
         // machines and the Ubuntu CI runner. Real color drift produces a far larger
         // diff and still fails the test.
         composeRule.onRoot().captureRoboImage(
-            roborazziOptions = RoborazziOptions(
-                compareOptions = RoborazziOptions.CompareOptions(changeThreshold = 0.01f),
-            ),
+            roborazziOptions =
+                RoborazziOptions(
+                    compareOptions = RoborazziOptions.CompareOptions(changeThreshold = 0.01f),
+                ),
         )
     }
 }
 
 @Composable
-private fun ListBadgeRow(label: String, dot: Color) {
+private fun ListBadgeRow(
+    label: String,
+    dot: Color,
+) {
     Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(Color.Black.copy(alpha = 0.55f))
-            .padding(horizontal = 6.dp, vertical = 3.dp),
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .background(Color.Black.copy(alpha = 0.55f))
+                .padding(horizontal = 6.dp, vertical = 3.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         androidx.compose.foundation.layout.Box(
@@ -88,11 +97,17 @@ private fun ListBadgeRow(label: String, dot: Color) {
 }
 
 @Composable
-private fun DetailChipRow(label: String, bg: Color, dot: Color, textColor: Color) {
+private fun DetailChipRow(
+    label: String,
+    bg: Color,
+    dot: Color,
+    textColor: Color,
+) {
     Row(
-        modifier = Modifier
-            .background(color = bg, shape = CircleShape)
-            .padding(horizontal = 10.dp, vertical = 5.dp),
+        modifier =
+            Modifier
+                .background(color = bg, shape = CircleShape)
+                .padding(horizontal = 10.dp, vertical = 5.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         androidx.compose.foundation.layout.Box(
