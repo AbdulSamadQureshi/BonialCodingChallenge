@@ -20,7 +20,10 @@ class CharactersUseCaseTest {
 
     @Test
     fun `invoke forwards page parameter to repository`(): Unit = runBlocking {
-        val page = CharactersPage(characters = listOf(Character(1, "Rick", null, null, null)), totalPages = 1)
+        val page = CharactersPage(
+            characters = listOf(Character(1, "Rick", null, null, null)),
+            totalPages = 1,
+        )
         whenever(repository.characters(3)).thenReturn(flowOf(Request.Success(page)))
 
         useCase(3).test {
@@ -32,14 +35,15 @@ class CharactersUseCaseTest {
     }
 
     @Test
-    fun `invoke falls back to page 1 when params is not an Int`(): Unit = runBlocking {
-        val page = CharactersPage(characters = emptyList(), totalPages = 1)
-        whenever(repository.characters(1)).thenReturn(flowOf(Request.Success(page)))
+    fun `invoke surfaces repository error to caller`(): Unit = runBlocking {
+        whenever(repository.characters(1)).thenReturn(
+            flowOf(Request.Error(com.bonial.domain.model.network.response.ApiError("NetworkError", "No connection."))),
+        )
 
-        useCase(params = null).test {
-            awaitItem() // Success
+        useCase(1).test {
+            val error = awaitItem() as Request.Error
+            assertThat(error.apiError?.code).isEqualTo("NetworkError")
             awaitComplete()
         }
-        verify(repository).characters(1)
     }
 }

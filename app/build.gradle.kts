@@ -188,4 +188,10 @@ dependencies {
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)
     debugImplementation(libs.androidx.compose.ui.tooling)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
+    // Non-debug variants don't inherit debugImplementation, so the Compose test
+    // activity manifest (needed by Robolectric screenshot tests) must be declared
+    // for each variant that runs unit tests.
+    add("qaImplementation", libs.androidx.compose.ui.test.manifest)
+    add("stagingImplementation", libs.androidx.compose.ui.test.manifest)
+    add("releaseImplementation", libs.androidx.compose.ui.test.manifest)
 }

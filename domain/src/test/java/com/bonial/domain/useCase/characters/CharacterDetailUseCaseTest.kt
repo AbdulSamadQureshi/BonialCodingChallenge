@@ -2,6 +2,7 @@ package com.bonial.domain.useCase.characters
 
 import app.cash.turbine.test
 import com.bonial.domain.model.CharacterDetail
+import com.bonial.domain.model.network.response.ApiError
 import com.bonial.domain.model.network.response.Request
 import com.bonial.domain.repository.CharactersRepository
 import com.google.common.truth.Truth.assertThat
@@ -10,7 +11,6 @@ import kotlinx.coroutines.runBlocking
 import org.junit.Test
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
-import org.mockito.kotlin.verifyNoInteractions
 import org.mockito.kotlin.whenever
 
 class CharacterDetailUseCaseTest {
@@ -19,7 +19,7 @@ class CharacterDetailUseCaseTest {
     private val useCase = CharacterDetailUseCase(repository)
 
     @Test
-    fun `invoke delegates to repository when id is a valid Int`(): Unit = runBlocking {
+    fun `invoke delegates to repository with given id`(): Unit = runBlocking {
         val detail = CharacterDetail(5, "Beth", "Alive", "Human", "Female", "Earth", "Home", null)
         whenever(repository.character(5)).thenReturn(flowOf(Request.Success(detail)))
 
@@ -32,23 +32,15 @@ class CharacterDetailUseCaseTest {
     }
 
     @Test
-    fun `invoke emits InvalidId error without calling repository when id is missing`(): Unit = runBlocking {
-        useCase(params = null).test {
-            val error = awaitItem() as Request.Error
-            assertThat(error.apiError?.code).isEqualTo("InvalidId")
-            assertThat(error.apiError?.message).isEqualTo("Character id is missing or invalid.")
-            awaitComplete()
-        }
-        verifyNoInteractions(repository)
-    }
+    fun `invoke surfaces repository error to caller`(): Unit = runBlocking {
+        whenever(repository.character(99)).thenReturn(
+            flowOf(Request.Error(ApiError("404", "Not found."))),
+        )
 
-    @Test
-    fun `invoke emits InvalidId error when params is wrong type`(): Unit = runBlocking {
-        useCase(params = "not-an-int").test {
+        useCase(99).test {
             val error = awaitItem() as Request.Error
-            assertThat(error.apiError?.code).isEqualTo("InvalidId")
+            assertThat(error.apiError?.code).isEqualTo("404")
             awaitComplete()
         }
-        verifyNoInteractions(repository)
     }
 }
