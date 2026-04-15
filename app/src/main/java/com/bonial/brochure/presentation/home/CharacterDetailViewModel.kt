@@ -27,9 +27,13 @@ data class CharacterDetailState(
 sealed class CharacterDetailIntent {
     object ToggleFavourite : CharacterDetailIntent()
     object Retry : CharacterDetailIntent()
+    object ShareCharacter : CharacterDetailIntent()
 }
 
-sealed class CharacterDetailEffect
+sealed class CharacterDetailEffect {
+    /** Carry the fully-formed share text so the UI only needs to call startActivity. */
+    data class Share(val text: String) : CharacterDetailEffect()
+}
 
 @HiltViewModel
 class CharacterDetailViewModel @Inject constructor(
@@ -58,6 +62,7 @@ class CharacterDetailViewModel @Inject constructor(
         when (intent) {
             is CharacterDetailIntent.ToggleFavourite -> toggleFavourite()
             is CharacterDetailIntent.Retry -> loadCharacter(route.id)
+            is CharacterDetailIntent.ShareCharacter -> shareCharacter()
         }
     }
 
@@ -102,6 +107,24 @@ class CharacterDetailViewModel @Inject constructor(
                 setState { copy(isFavourite = isFav) }
             }
         }
+    }
+
+    /**
+     * Builds the plain-text share payload from the current character state and
+     * emits it as a [CharacterDetailEffect.Share] one-shot effect.
+     *
+     * Pure string logic — no Android framework dependency — so it is fully unit-testable.
+     * The composable receives the ready-made text and only calls startActivity.
+     */
+    private fun shareCharacter() {
+        val character = uiState.value.character ?: return
+        val text = buildString {
+            append(character.name ?: "")
+            character.species?.let { append(" · $it") }
+            character.status?.let { append(" · $it") }
+            character.imageUrl?.let { append("\n$it") }
+        }
+        setEffect { CharacterDetailEffect.Share(text) }
     }
 
     private fun toggleFavourite() {

@@ -77,9 +77,7 @@ import coil.request.ImageRequest
 import com.bonial.brochure.R
 import com.bonial.brochure.presentation.model.CharacterUi
 import com.bonial.brochure.presentation.theme.CloseLoopWalletTheme
-import com.bonial.brochure.presentation.theme.StatusAlive
-import com.bonial.brochure.presentation.theme.StatusDead
-import com.bonial.brochure.presentation.theme.StatusUnknown
+import com.bonial.brochure.presentation.theme.toStatusColorSet
 import com.bonial.core.ui.extensions.shimmerEffect
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -387,11 +385,7 @@ fun CharacterItem(
 
 @Composable
 private fun StatusBadge(status: String, modifier: Modifier = Modifier) {
-    val dotColor = when (status.lowercase()) {
-        "alive" -> StatusAlive
-        "dead" -> StatusDead
-        else -> StatusUnknown
-    }
+    val colors = status.toStatusColorSet()
     Row(
         modifier = modifier
             .background(
@@ -401,7 +395,7 @@ private fun StatusBadge(status: String, modifier: Modifier = Modifier) {
             .padding(horizontal = 6.dp, vertical = 3.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Box(modifier = Modifier.size(7.dp).clip(CircleShape).background(dotColor))
+        Box(modifier = Modifier.size(7.dp).clip(CircleShape).background(colors.dot))
         Spacer(modifier = Modifier.width(4.dp))
         Text(
             text = status,

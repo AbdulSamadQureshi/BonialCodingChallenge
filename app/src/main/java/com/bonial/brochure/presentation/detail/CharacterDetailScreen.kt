@@ -51,25 +51,21 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.flowWithLifecycle
 import coil.compose.AsyncImage
 import coil.compose.AsyncImagePainter
 import coil.request.ImageRequest
 import com.bonial.brochure.R
+import com.bonial.brochure.presentation.home.CharacterDetailEffect
 import com.bonial.brochure.presentation.home.CharacterDetailIntent
 import com.bonial.brochure.presentation.home.CharacterDetailViewModel
 import com.bonial.brochure.presentation.home.ErrorMessage
 import com.bonial.brochure.presentation.home.ImageErrorPlaceholder
 import com.bonial.brochure.presentation.model.CharacterDetailUi
-import com.bonial.brochure.presentation.theme.StatusAliveBg
-import com.bonial.brochure.presentation.theme.StatusAliveText
-import com.bonial.brochure.presentation.theme.StatusAlive
-import com.bonial.brochure.presentation.theme.StatusDeadBg
-import com.bonial.brochure.presentation.theme.StatusDeadText
-import com.bonial.brochure.presentation.theme.StatusDead
-import com.bonial.brochure.presentation.theme.StatusUnknownBg
-import com.bonial.brochure.presentation.theme.StatusUnknownText
-import com.bonial.brochure.presentation.theme.StatusUnknown
+import com.bonial.brochure.presentation.theme.toStatusColorSet
 import com.bonial.core.ui.extensions.shimmerEffect
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -80,6 +76,25 @@ fun CharacterDetailScreen(
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val context = LocalContext.current
+    val lifecycleOwner = LocalLifecycleOwner.current
+
+    // Collect one-shot effects — share text is built by the ViewModel (pure logic),
+    // the composable only calls startActivity (Android UI concern).
+    LaunchedEffect(viewModel.effect, lifecycleOwner) {
+        viewModel.effect
+            .flowWithLifecycle(lifecycleOwner.lifecycle, Lifecycle.State.STARTED)
+            .collect { effect ->
+                when (effect) {
+                    is CharacterDetailEffect.Share -> {
+                        val intent = Intent(Intent.ACTION_SEND).apply {
+                            type = "text/plain"
+                            putExtra(Intent.EXTRA_TEXT, effect.text)
+                        }
+                        context.startActivity(Intent.createChooser(intent, null))
+                    }
+                }
+            }
+    }
 
     Scaffold(
         topBar = {
@@ -100,21 +115,9 @@ fun CharacterDetailScreen(
                     }
                 },
                 actions = {
-                    state.character?.let { character ->
+                    if (state.character != null) {
                         IconButton(
-                            onClick = {
-                                val shareText = buildString {
-                                    append(character.name ?: "")
-                                    character.species?.let { append(" · $it") }
-                                    character.status?.let { append(" · $it") }
-                                    character.imageUrl?.let { append("\n$it") }
-                                }
-                                val intent = Intent(Intent.ACTION_SEND).apply {
-                                    type = "text/plain"
-                                    putExtra(Intent.EXTRA_TEXT, shareText)
-                                }
-                                context.startActivity(Intent.createChooser(intent, null))
-                            },
+                            onClick = { viewModel.sendIntent(CharacterDetailIntent.ShareCharacter) },
                         ) {
                             Icon(
                                 imageVector = Icons.Filled.Share,
@@ -309,20 +312,10 @@ private fun CharacterDetailContent(character: CharacterDetailUi) {
 
 @Composable
 private fun StatusChip(status: String, modifier: Modifier = Modifier) {
-    val (bgColor, dotColor) = when (status.lowercase()) {
-        "alive" -> StatusAliveBg to StatusAlive
-        "dead" -> StatusDeadBg to StatusDead
-        else -> StatusUnknownBg to StatusUnknown
-    }
-    val textColor = when (status.lowercase()) {
-        "alive" -> StatusAliveText
-        "dead" -> StatusDeadText
-        else -> StatusUnknownText
-    }
-
+    val colors = status.toStatusColorSet()
     Row(
         modifier = modifier
-            .background(color = bgColor, shape = CircleShape)
+            .background(color = colors.background, shape = CircleShape)
             .padding(horizontal = 10.dp, vertical = 5.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
@@ -330,14 +323,14 @@ private fun StatusChip(status: String, modifier: Modifier = Modifier) {
             modifier = Modifier
                 .size(8.dp)
                 .clip(CircleShape)
-                .background(dotColor),
+                .background(colors.dot),
         )
         Spacer(modifier = Modifier.width(5.dp))
         Text(
             text = status,
             fontSize = 12.sp,
             fontWeight = FontWeight.SemiBold,
-            color = textColor,
+            color = colors.label,
         )
     }
 }
