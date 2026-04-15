@@ -5,12 +5,18 @@ import com.bonial.brochure.presentation.model.CharacterUi
 import com.bonial.brochure.presentation.utils.toErrorMessage
 import com.bonial.core.base.MviViewModel
 import com.bonial.domain.model.network.response.Request
+import com.bonial.domain.useCase.characters.CharactersParams
 import com.bonial.domain.useCase.characters.CharactersUseCase
 import com.bonial.domain.useCase.favourites.GetFavouriteCoverUrlsUseCase
 import com.bonial.domain.useCase.favourites.ToggleFavouriteUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -23,14 +29,8 @@ data class CharactersState(
     val currentPage: Int = 1,
     val totalPages: Int = 1,
     val searchQuery: String = "",
-) {
-    /** Derived list — filtered locally so no extra API call is needed for search. */
-    val filteredCharacters: List<CharacterUi>
-        get() = if (searchQuery.isBlank()) characters
-                else characters.filter {
-                    it.name?.contains(searchQuery, ignoreCase = true) == true
-                }
-}
+    val isInitialLoading: Boolean = true,
+)
 
 sealed class CharactersIntent {
     object LoadCharacters : CharactersIntent()
@@ -43,6 +43,7 @@ sealed class CharactersEffect {
     data class ShowError(val message: String) : CharactersEffect()
 }
 
+@OptIn(FlowPreview::class)
 @HiltViewModel
 class CharactersViewModel @Inject constructor(
     private val charactersUseCase: CharactersUseCase,
@@ -51,40 +52,64 @@ class CharactersViewModel @Inject constructor(
 ) : MviViewModel<CharactersState, CharactersIntent, CharactersEffect>() {
 
     private var loadJob: Job? = null
+    private val searchQueryFlow = MutableStateFlow("")
 
     override fun createInitialState(): CharactersState = CharactersState()
 
     init {
         observeFavourites()
+        observeSearchQuery()
         sendIntent(CharactersIntent.LoadCharacters)
     }
 
     override fun handleIntent(intent: CharactersIntent) {
         when (intent) {
-            is CharactersIntent.LoadCharacters -> loadCharacters(page = 1, isNextPage = false)
+            is CharactersIntent.LoadCharacters -> loadCharacters(page = 1, isNextPage = false, query = uiState.value.searchQuery)
             is CharactersIntent.LoadNextPage -> {
                 val state = uiState.value
                 if (!state.isLoadingNextPage && state.currentPage < state.totalPages) {
-                    loadCharacters(page = state.currentPage + 1, isNextPage = true)
+                    loadCharacters(page = state.currentPage + 1, isNextPage = true, query = state.searchQuery)
                 }
             }
             is CharactersIntent.ToggleFavourite -> toggleFavourite(intent.character)
-            is CharactersIntent.Search -> setState { copy(searchQuery = intent.query) }
+            is CharactersIntent.Search -> {
+                setState {
+                    copy(
+                        searchQuery = intent.query,
+                        characters = emptyList(),
+                        isLoading = true,
+                        error = null
+                    )
+                }
+                searchQueryFlow.value = intent.query
+            }
         }
     }
 
-    private fun loadCharacters(page: Int, isNextPage: Boolean) {
+    private fun observeSearchQuery() {
+        viewModelScope.launch {
+            searchQueryFlow
+                .debounce { query -> if (query.isEmpty()) 0L else 500L }
+                .distinctUntilChanged()
+                .collectLatest { query ->
+                    loadCharacters(page = 1, isNextPage = false, query = query)
+                }
+        }
+    }
+
+    private fun loadCharacters(page: Int, isNextPage: Boolean, query: String? = null) {
+        val sanitizedQuery = if (query.isNullOrBlank()) null else query
         loadJob?.cancel()
         loadJob = viewModelScope.launch {
             if (isNextPage) {
                 setState { copy(isLoadingNextPage = true) }
             } else {
-                setState { copy(isLoading = true, error = null) }
+                setState { copy(isLoading = true, error = null, characters = emptyList()) }
             }
 
             val savedFavourites = getFavouriteCoverUrlsUseCase().first()
 
-            charactersUseCase(page).collectLatest { response ->
+            charactersUseCase(CharactersParams(page, sanitizedQuery)).collectLatest { response ->
                 when (response) {
                     is Request.Loading -> Unit
                     is Request.Success -> {
@@ -106,13 +131,27 @@ class CharactersViewModel @Inject constructor(
                                 currentPage = page,
                                 totalPages = response.data.totalPages,
                                 error = null,
+                                isInitialLoading = false,
                             )
                         }
                     }
                     is Request.Error -> {
+                        val isNoResults = response.apiError?.code == "404"
                         val message = response.apiError.toErrorMessage()
-                        setEffect { CharactersEffect.ShowError(message) }
-                        setState { copy(isLoading = false, isLoadingNextPage = false, error = message) }
+
+                        setState {
+                            copy(
+                                characters = if (!isNextPage && isNoResults) emptyList() else characters,
+                                isLoading = false,
+                                isLoadingNextPage = false,
+                                error = if (isNoResults) null else message,
+                                isInitialLoading = false,
+                            )
+                        }
+
+                        if (!isNoResults) {
+                            setEffect { CharactersEffect.ShowError(message) }
+                        }
                     }
                 }
             }

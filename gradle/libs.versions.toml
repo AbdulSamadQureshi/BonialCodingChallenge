@@ -1,6 +1,6 @@
 [versions]
 agp = "9.1.1"
-kotlin = "2.2.21"
+kotlin = "2.1.10"
 detekt = "1.23.7"
 ktlint = "12.1.2"
 room = "2.7.0"
@@ -16,7 +16,7 @@ activityCompose = "1.12.0"
 composeBom = "2025.11.01"
 coilCompose = "2.7.0"
 hilt = "2.59.2"
-ksp = "2.3.6"
+ksp = "2.1.10-1.0.29"
 anvil = "2.7.0"
 hiltNavigationCompose = "1.2.0"
 gson = "2.10.1"
@@ -32,6 +32,7 @@ archCoreTesting = "2.2.0"
 roborazzi = "1.59.0"
 robolectric = "4.13"
 mockwebserver = "5.3.2"
+foojay = "0.9.0"
 
 [libraries]
 coil = { group = "io.coil-kt", name = "coil-compose", version.ref = "coilCompose" }
@@ -95,3 +96,4 @@ detekt = { id = "io.gitlab.arturbosch.detekt", version.ref = "detekt" }
 ktlint = { id = "org.jlleitschuh.gradle.ktlint", version.ref = "ktlint" }
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 roborazzi = { id = "io.github.takahirom.roborazzi", version.ref = "roborazzi" }
+foojay = { id = "org.gradle.toolchains.foojay-resolver-convention", version.ref = "foojay" }

@@ -24,23 +24,23 @@ class CharactersUseCaseTest {
             characters = listOf(Character(1, "Rick", null, null, null)),
             totalPages = 1,
         )
-        whenever(repository.characters(3)).thenReturn(flowOf(Request.Success(page)))
+        whenever(repository.characters(3, null)).thenReturn(flowOf(Request.Success(page)))
 
-        useCase(3).test {
+        useCase(CharactersParams(3)).test {
             val success = awaitItem() as Request.Success
             assertThat(success.data.characters.first().name).isEqualTo("Rick")
             awaitComplete()
         }
-        verify(repository).characters(3)
+        verify(repository).characters(3, null)
     }
 
     @Test
     fun `invoke surfaces repository error to caller`(): Unit = runBlocking {
-        whenever(repository.characters(1)).thenReturn(
+        whenever(repository.characters(1, null)).thenReturn(
             flowOf(Request.Error(com.bonial.domain.model.network.response.ApiError("NetworkError", "No connection."))),
         )
 
-        useCase(1).test {
+        useCase(CharactersParams(1)).test {
             val error = awaitItem() as Request.Error
             assertThat(error.apiError?.code).isEqualTo("NetworkError")
             awaitComplete()

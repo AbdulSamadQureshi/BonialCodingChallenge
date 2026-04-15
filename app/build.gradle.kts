@@ -1,8 +1,11 @@
+import com.android.build.api.dsl.ApplicationExtension
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import java.io.FileInputStream
 import java.util.Properties
 
 plugins {
     alias(libs.plugins.android.application)
+    alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.hilt)
     alias(libs.plugins.ksp)
@@ -10,11 +13,9 @@ plugins {
     alias(libs.plugins.roborazzi)
 }
 
-android {
+configure<ApplicationExtension> {
     namespace = "com.bonial.brochure"
-    compileSdk {
-        version = release(36)
-    }
+    compileSdk = 37
 
     signingConfigs {
         create("release") {
@@ -44,7 +45,8 @@ android {
     defaultConfig {
         applicationId = "com.bonial.brochure"
         minSdk = 25
-        targetSdk = 36
+        //noinspection TargetSdkOnContext
+        targetSdk = 37
         versionCode = 1
         versionName = "1.0"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
@@ -121,23 +123,33 @@ android {
             matchingFallbacks += listOf("debug", "release")
         }
     }
+
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_17
-        targetCompatibility = JavaVersion.VERSION_17
+        sourceCompatibility = JavaVersion.VERSION_21
+        targetCompatibility = JavaVersion.VERSION_21
     }
-    kotlin {
-        jvmToolchain(17)
-    }
+
     buildFeatures {
         compose = true
         buildConfig = true
     }
+
     // Roborazzi runs under Robolectric, which needs Android resources on the JVM classpath.
     testOptions {
         unitTests.isIncludeAndroidResources = true
     }
-    // Sources for screenshot baselines live with the code, not under build/.
-    sourceSets.getByName("test").resources.srcDir("src/test/screenshots")
+
+    sourceSets {
+        getByName("test") {
+            resources.srcDir("src/test/screenshots")
+        }
+    }
+}
+
+kotlin {
+    compilerOptions {
+        jvmTarget.set(JvmTarget.JVM_21)
+    }
 }
 
 roborazzi {

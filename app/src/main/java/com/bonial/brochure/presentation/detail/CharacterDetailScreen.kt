@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -177,7 +178,7 @@ private fun CharacterDetailShimmer() {
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(320.dp)
+                .aspectRatio(1f)
                 .shimmerEffect(),
         )
         // Metadata rows placeholder
@@ -224,7 +225,7 @@ private fun CharacterDetailContent(character: CharacterDetailUi) {
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(320.dp),
+                .aspectRatio(1f),
         ) {
             // Shimmer shown while image is in-flight
             if (!imageLoaded && !imageError) {
@@ -245,7 +246,7 @@ private fun CharacterDetailContent(character: CharacterDetailUi) {
                     .build(),
                 contentDescription = character.name,
                 modifier = Modifier.fillMaxSize(),
-                contentScale = ContentScale.Fit,
+                contentScale = ContentScale.Crop,
                 onState = { state ->
                     when (state) {
                         is AsyncImagePainter.State.Success -> {

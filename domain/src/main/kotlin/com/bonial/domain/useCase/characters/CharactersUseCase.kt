@@ -14,11 +14,16 @@ import javax.inject.Inject
  * future behaviour (caching policy, favourites merging, etc.) without ViewModels
  * having to call the repository directly.
  */
+data class CharactersParams(
+    val page: Int,
+    val name: String? = null,
+)
+
 class CharactersUseCase @Inject constructor(
     private val repository: CharactersRepository,
-) : BaseUseCase<Int, Flow<Request<CharactersPage>>> {
+) : BaseUseCase<CharactersParams, Flow<Request<CharactersPage>>> {
 
-    override suspend fun invoke(params: Int): Flow<Request<CharactersPage>> {
-        return repository.characters(params)
+    override suspend fun invoke(params: CharactersParams): Flow<Request<CharactersPage>> {
+        return repository.characters(params.page, params.name)
     }
 }

@@ -133,6 +133,7 @@ fun CharactersScreen(
                         onSearch = {},
                         expanded = false,
                         onExpandedChange = {},
+                        enabled = !state.isInitialLoading,
                         placeholder = { Text(stringResource(R.string.hint_search)) },
                         leadingIcon = {
                             Icon(Icons.Default.Search, contentDescription = null)
@@ -169,10 +170,10 @@ fun CharactersScreen(
                         message = state.error,
                         onRetry = { viewModel.sendIntent(CharactersIntent.LoadCharacters) },
                     )
-                    state.filteredCharacters.isEmpty() && state.searchQuery.isNotBlank() -> EmptySearchState(query = state.searchQuery)
+                    state.characters.isEmpty() && state.searchQuery.isNotBlank() -> EmptySearchState(query = state.searchQuery)
                     state.characters.isEmpty() -> EmptyState()
                     else -> CharactersGrid(
-                        characters = state.filteredCharacters,
+                        characters = state.characters,
                         isLoadingNextPage = state.isLoadingNextPage,
                         lazyGridState = lazyGridState,
                         onCharacterClick = onCharacterClick,

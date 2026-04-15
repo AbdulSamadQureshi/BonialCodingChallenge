@@ -1,31 +1,36 @@
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+
 plugins {
     alias(libs.plugins.android.library)
+    alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.parcelize)
     alias(libs.plugins.ksp)
 }
 
 android {
     namespace = "com.bonial.network"
-    compileSdk = 36
+    compileSdk = 37
 
     defaultConfig {
         minSdk = 24
     }
 
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_17
-        targetCompatibility = JavaVersion.VERSION_17
+        sourceCompatibility = JavaVersion.VERSION_21
+        targetCompatibility = JavaVersion.VERSION_21
     }
 
     kotlin {
-        jvmToolchain(17)
+        compilerOptions {
+            jvmTarget.set(JvmTarget.JVM_21)
+        }
     }
 }
 
 dependencies {
     implementation(project(":core"))
     implementation(project(":domain"))
-    
+
     // Retrofit — exposed as `api` because consumers (data, app) define API service
     // interfaces and DI wiring against these types. Keeping them on the public surface
     // keeps :network the single source of truth for the networking stack rather than

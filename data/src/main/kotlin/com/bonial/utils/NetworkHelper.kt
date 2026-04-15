@@ -22,8 +22,8 @@ import java.io.IOException
  * real wall-clock delays.
  */
 suspend fun <T> withRetry(
-    maxAttempts: Int = 5,
-    retryDelayMs: Long = 1_000L,
+    maxAttempts: Int = 20,
+    retryDelayMs: Long = 500L,
     delayProvider: suspend (Long) -> Unit = { ms -> delay(ms) },
     isRetryable: (Throwable) -> Boolean = Throwable::isRateLimitError,
     block: suspend () -> T,

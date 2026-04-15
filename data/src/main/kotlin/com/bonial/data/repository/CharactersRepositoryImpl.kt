@@ -19,8 +19,8 @@ class CharactersRepositoryImpl @Inject constructor(
     private val apiService: CharactersApiService,
 ) : CharactersRepository {
 
-    override fun characters(page: Int): Flow<Request<CharactersPage>> =
-        safeApiCall { apiService.characters(page) }.map { request ->
+    override fun characters(page: Int, name: String?): Flow<Request<CharactersPage>> =
+        safeApiCall { apiService.characters(page, name) }.map { request ->
             request.mapSuccess { it.toDomainPage() }
         }
 
