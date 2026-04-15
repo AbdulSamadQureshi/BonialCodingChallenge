@@ -1,5 +1,6 @@
 package com.bonial.brochure.presentation.detail
 
+import android.content.Intent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
@@ -23,7 +24,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
-import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -45,28 +46,26 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.flowWithLifecycle
 import coil.compose.AsyncImage
 import coil.compose.AsyncImagePainter
 import coil.request.ImageRequest
 import com.bonial.brochure.R
+import com.bonial.brochure.presentation.home.CharacterDetailEffect
 import com.bonial.brochure.presentation.home.CharacterDetailIntent
 import com.bonial.brochure.presentation.home.CharacterDetailViewModel
 import com.bonial.brochure.presentation.home.ErrorMessage
+import com.bonial.brochure.presentation.home.ImageErrorPlaceholder
 import com.bonial.brochure.presentation.model.CharacterDetailUi
-import com.bonial.brochure.presentation.theme.StatusAliveBg
-import com.bonial.brochure.presentation.theme.StatusAliveText
-import com.bonial.brochure.presentation.theme.StatusAlive
-import com.bonial.brochure.presentation.theme.StatusDeadBg
-import com.bonial.brochure.presentation.theme.StatusDeadText
-import com.bonial.brochure.presentation.theme.StatusDead
-import com.bonial.brochure.presentation.theme.StatusUnknownBg
-import com.bonial.brochure.presentation.theme.StatusUnknownText
-import com.bonial.brochure.presentation.theme.StatusUnknown
+import com.bonial.brochure.presentation.theme.toStatusColorSet
 import com.bonial.core.ui.extensions.shimmerEffect
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -76,6 +75,26 @@ fun CharacterDetailScreen(
     onBack: () -> Unit,
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
+    val context = LocalContext.current
+    val lifecycleOwner = LocalLifecycleOwner.current
+
+    // Collect one-shot effects — share text is built by the ViewModel (pure logic),
+    // the composable only calls startActivity (Android UI concern).
+    LaunchedEffect(viewModel.effect, lifecycleOwner) {
+        viewModel.effect
+            .flowWithLifecycle(lifecycleOwner.lifecycle, Lifecycle.State.STARTED)
+            .collect { effect ->
+                when (effect) {
+                    is CharacterDetailEffect.Share -> {
+                        val intent = Intent(Intent.ACTION_SEND).apply {
+                            type = "text/plain"
+                            putExtra(Intent.EXTRA_TEXT, effect.text)
+                        }
+                        context.startActivity(Intent.createChooser(intent, null))
+                    }
+                }
+            }
+    }
 
     Scaffold(
         topBar = {
@@ -96,6 +115,16 @@ fun CharacterDetailScreen(
                     }
                 },
                 actions = {
+                    if (state.character != null) {
+                        IconButton(
+                            onClick = { viewModel.sendIntent(CharacterDetailIntent.ShareCharacter) },
+                        ) {
+                            Icon(
+                                imageVector = Icons.Filled.Share,
+                                contentDescription = stringResource(R.string.label_share),
+                            )
+                        }
+                    }
                     IconButton(
                         onClick = { viewModel.sendIntent(CharacterDetailIntent.ToggleFavourite) },
                     ) {
@@ -120,13 +149,60 @@ fun CharacterDetailScreen(
                 .padding(innerPadding),
             contentAlignment = Alignment.Center,
         ) {
-            // Local val enables smart-cast inside the when branch — the delegated
-            // `state` property from collectAsStateWithLifecycle() cannot be smart-cast directly.
             val character = state.character
             when {
-                state.isLoading -> CircularProgressIndicator(modifier = Modifier.size(48.dp))
-                state.error != null -> ErrorMessage(message = state.error)
+                state.isLoading -> CharacterDetailShimmer()
+                state.error != null -> ErrorMessage(
+                    message = state.error,
+                    onRetry = { viewModel.sendIntent(CharacterDetailIntent.Retry) },
+                )
                 character != null -> CharacterDetailContent(character = character)
+            }
+        }
+    }
+}
+
+/**
+ * Skeleton loader that mirrors the real detail layout so there's no jarring
+ * layout shift when content arrives.
+ */
+@Composable
+private fun CharacterDetailShimmer() {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .testTag("detail_shimmer"),
+    ) {
+        // Hero image placeholder
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(320.dp)
+                .shimmerEffect(),
+        )
+        // Metadata rows placeholder
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 20.dp, vertical = 16.dp),
+        ) {
+            // Name shimmer
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth(0.55f)
+                    .height(24.dp)
+                    .shimmerEffect(),
+            )
+            Spacer(modifier = Modifier.height(20.dp))
+            // Detail row shimmers
+            repeat(4) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(14.dp)
+                        .shimmerEffect(),
+                )
+                Spacer(modifier = Modifier.height(20.dp))
             }
         }
     }
@@ -135,6 +211,7 @@ fun CharacterDetailScreen(
 @Composable
 private fun CharacterDetailContent(character: CharacterDetailUi) {
     var imageLoaded by remember { mutableStateOf(false) }
+    var imageError by remember { mutableStateOf(false) }
     var contentVisible by remember { mutableStateOf(false) }
     LaunchedEffect(Unit) { contentVisible = true }
 
@@ -149,25 +226,45 @@ private fun CharacterDetailContent(character: CharacterDetailUi) {
                 .fillMaxWidth()
                 .height(320.dp),
         ) {
-            if (!imageLoaded) {
+            // Shimmer shown while image is in-flight
+            if (!imageLoaded && !imageError) {
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
                         .shimmerEffect(),
                 )
             }
+
+            // Actual image — placeholder_image shown by Coil while network is loading;
+            // we track Success/Error to hide the shimmer and show the error overlay.
             AsyncImage(
                 model = ImageRequest.Builder(LocalContext.current)
                     .data(character.imageUrl)
+                    .placeholder(R.drawable.placeholder_image)
                     .crossfade(400)
                     .build(),
                 contentDescription = character.name,
                 modifier = Modifier.fillMaxSize(),
-                contentScale = ContentScale.Crop,
+                contentScale = ContentScale.Fit,
                 onState = { state ->
-                    if (state is AsyncImagePainter.State.Success) imageLoaded = true
+                    when (state) {
+                        is AsyncImagePainter.State.Success -> {
+                            imageLoaded = true
+                            imageError = false
+                        }
+                        is AsyncImagePainter.State.Error -> {
+                            imageError = true
+                            imageLoaded = false
+                        }
+                        else -> Unit
+                    }
                 },
             )
+
+            // Error overlay — shown when Coil could not load the image
+            if (imageError) {
+                ImageErrorPlaceholder(modifier = Modifier.fillMaxSize())
+            }
         }
 
         // Content card slides up after image
@@ -215,20 +312,10 @@ private fun CharacterDetailContent(character: CharacterDetailUi) {
 
 @Composable
 private fun StatusChip(status: String, modifier: Modifier = Modifier) {
-    val (bgColor, dotColor) = when (status.lowercase()) {
-        "alive" -> StatusAliveBg to StatusAlive
-        "dead" -> StatusDeadBg to StatusDead
-        else -> StatusUnknownBg to StatusUnknown
-    }
-    val textColor = when (status.lowercase()) {
-        "alive" -> StatusAliveText
-        "dead" -> StatusDeadText
-        else -> StatusUnknownText
-    }
-
+    val colors = status.toStatusColorSet()
     Row(
         modifier = modifier
-            .background(color = bgColor, shape = CircleShape)
+            .background(color = colors.background, shape = CircleShape)
             .padding(horizontal = 10.dp, vertical = 5.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
@@ -236,14 +323,14 @@ private fun StatusChip(status: String, modifier: Modifier = Modifier) {
             modifier = Modifier
                 .size(8.dp)
                 .clip(CircleShape)
-                .background(dotColor),
+                .background(colors.dot),
         )
         Spacer(modifier = Modifier.width(5.dp))
         Text(
             text = status,
             fontSize = 12.sp,
             fontWeight = FontWeight.SemiBold,
-            color = textColor,
+            color = colors.label,
         )
     }
 }
