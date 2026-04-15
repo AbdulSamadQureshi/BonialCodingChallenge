@@ -1,4 +1,6 @@
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import java.io.FileInputStream
+import java.util.Properties
 
 plugins {
     alias(libs.plugins.android.library)
@@ -12,6 +14,37 @@ android {
 
     defaultConfig {
         minSdk = 24
+    }
+
+    buildFeatures {
+        buildConfig = true
+    }
+
+    buildTypes {
+        release {
+            val releaseProperties = Properties()
+            val releasePropertiesFile = rootProject.file("release.properties")
+            if (releasePropertiesFile.exists()) {
+                releaseProperties.load(FileInputStream(releasePropertiesFile))
+                buildConfigField("String", "BASE_URL", "\"${releaseProperties.getProperty("BASE_URL")}\"")
+                buildConfigField("String", "ENVIRONMENT", "\"${releaseProperties.getProperty("ENVIRONMENT")}\"")
+            } else {
+                buildConfigField("String", "BASE_URL", "\"https://rickandmortyapi.com/api/\"")
+                buildConfigField("String", "ENVIRONMENT", "\"production\"")
+            }
+        }
+        getByName("debug") {
+            val debugProperties = Properties()
+            val debugPropertiesFile = rootProject.file("staging.properties")
+            if (debugPropertiesFile.exists()) {
+                debugProperties.load(FileInputStream(debugPropertiesFile))
+                buildConfigField("String", "BASE_URL", "\"${debugProperties.getProperty("BASE_URL")}\"")
+                buildConfigField("String", "ENVIRONMENT", "\"${debugProperties.getProperty("ENVIRONMENT")}\"")
+            } else {
+                buildConfigField("String", "BASE_URL", "\"https://rickandmortyapi.com/api/\"")
+                buildConfigField("String", "ENVIRONMENT", "\"staging\"")
+            }
+        }
     }
 
     compileOptions {
@@ -30,17 +63,9 @@ dependencies {
     implementation(project(":core"))
     implementation(project(":domain"))
 
-    // Retrofit — exposed as `api` because consumers (data, app) define API service
-    // interfaces and DI wiring against these types. Keeping them on the public surface
-    // keeps :network the single source of truth for the networking stack rather than
-    // forcing every consumer to re-declare the dependency.
     api(libs.retrofit.core)
     api(libs.retrofit.gson)
-
-    // OkHttp logging is a private implementation detail of RetrofitClient — no consumer
-    // needs the type, so it stays off the module's public surface.
     implementation(libs.okhttp.logging)
-
 
     implementation(libs.hilt.android)
     ksp(libs.hilt.android.compiler)

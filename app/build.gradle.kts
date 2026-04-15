@@ -61,25 +61,11 @@ configure<ApplicationExtension> {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro",
             )
-
-            val releaseProperties = Properties()
-            val releasePropertiesFile = rootProject.file("release.properties")
-            if (releasePropertiesFile.exists()) {
-                releaseProperties.load(FileInputStream(releasePropertiesFile))
-                buildConfigField("String", "BASE_URL", "\"${releaseProperties.getProperty("BASE_URL")}\"")
-                buildConfigField("String", "ENVIRONMENT", "\"${releaseProperties.getProperty("ENVIRONMENT")}\"")
-            }
         }
 
         getByName("debug") {
             signingConfig = signingConfigs.getByName("debug")
             isDebuggable = true
-            val debugProperties = Properties()
-            val debugPropertiesFile = rootProject.file("staging.properties")
-            if (debugPropertiesFile.exists()) {
-                debugProperties.load(FileInputStream(debugPropertiesFile))
-                buildConfigField("String", "BASE_URL", "\"${debugProperties.getProperty("BASE_URL")}\"")
-            }
         }
 
         val qa by creating {
@@ -93,15 +79,6 @@ configure<ApplicationExtension> {
             )
             applicationIdSuffix = ".qa"
             versionNameSuffix = "-qa"
-
-            val qaProperties = Properties()
-            val qaPropertiesFile = rootProject.file("qa.properties")
-            if (qaPropertiesFile.exists()) {
-                qaProperties.load(FileInputStream(qaPropertiesFile))
-
-                buildConfigField("String", "BASE_URL", "\"${qaProperties.getProperty("BASE_URL")}\"")
-                buildConfigField("String", "ENVIRONMENT", "\"${qaProperties.getProperty("ENVIRONMENT")}\"")
-            }
             matchingFallbacks += listOf("debug", "release")
         }
 
@@ -112,13 +89,6 @@ configure<ApplicationExtension> {
             isShrinkResources = false
             applicationIdSuffix = ".staging"
             versionNameSuffix = "-staging"
-
-            val stagingProperties = Properties()
-            val stagingPropertiesFile = rootProject.file("staging.properties")
-            if (stagingPropertiesFile.exists()) {
-                stagingProperties.load(FileInputStream(stagingPropertiesFile))
-                buildConfigField("String", "BASE_URL", "\"${stagingProperties.getProperty("BASE_URL")}\"")
-            }
             matchingFallbacks += listOf("debug", "release")
         }
     }
