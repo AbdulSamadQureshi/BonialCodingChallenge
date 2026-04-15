@@ -93,6 +93,46 @@ tasks.register<JacocoReport>("jacocoFullReport") {
         html.required.set(true)  // human-readable artifact
         csv.required.set(false)
     }
+
+    doLast {
+        val xmlReport = reports.xml.outputLocation.asFile.get()
+        if (!xmlReport.exists()) return@doLast
+
+        // Strip the DOCTYPE declaration before parsing — the JaCoCo DTD reference
+        // triggers security restrictions in the JVM's SAX parser.
+        val xmlContent = xmlReport.readText()
+            .replace(Regex("<!DOCTYPE[^>]*>"), "")
+        val doc = groovy.xml.XmlParser().parseText(xmlContent)
+        val counters = (doc["counter"] as groovy.util.NodeList)
+            .filterIsInstance<groovy.util.Node>()
+            .associate { node ->
+                node.attribute("type") as String to Pair(
+                    (node.attribute("covered") as String).toInt(),
+                    (node.attribute("missed") as String).toInt(),
+                )
+            }
+
+        fun pct(type: String): String {
+            val (covered, missed) = counters[type] ?: return "N/A"
+            val total = covered + missed
+            val p = if (total > 0) covered * 100.0 / total else 0.0
+            val bar = "█".repeat((p / 10).toInt()) + "░".repeat(10 - (p / 10).toInt())
+            return "$bar  ${"%.1f".format(p)}%  ($covered/$total)"
+        }
+
+        println("")
+        println("┌─────────────────────────────────────────────┐")
+        println("│           JaCoCo Coverage Report            │")
+        println("├──────────────┬──────────────────────────────┤")
+        println("│ Lines        │ ${pct("LINE").padEnd(28)} │")
+        println("│ Instructions │ ${pct("INSTRUCTION").padEnd(28)} │")
+        println("│ Branches     │ ${pct("BRANCH").padEnd(28)} │")
+        println("│ Methods      │ ${pct("METHOD").padEnd(28)} │")
+        println("│ Classes      │ ${pct("CLASS").padEnd(28)} │")
+        println("└──────────────┴──────────────────────────────┘")
+        println("  HTML report: ${reports.html.outputLocation.asFile.get()}/index.html")
+        println("")
+    }
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
