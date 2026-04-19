@@ -119,11 +119,12 @@ class CharacterDetailViewModel
 
         private fun observeFavourite(imageUrl: String) {
             favouriteJob?.cancel()
-            favouriteJob = viewModelScope.launch {
-                isFavouriteFlowUseCase(imageUrl).collectLatest { isFav ->
-                    setState { copy(isFavourite = isFav) }
+            favouriteJob =
+                viewModelScope.launch {
+                    isFavouriteFlowUseCase(imageUrl).collectLatest { isFav ->
+                        setState { copy(isFavourite = isFav) }
+                    }
                 }
-            }
         }
 
         /**
