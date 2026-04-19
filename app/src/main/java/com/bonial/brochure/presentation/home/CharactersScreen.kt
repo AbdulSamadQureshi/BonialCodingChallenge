@@ -32,6 +32,7 @@ import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Button
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DockedSearchBar
@@ -219,6 +220,10 @@ fun CharactersScreen(
                                 viewModel.sendIntent(CharactersIntent.ToggleFavourite(character))
                             },
                             bottomPadding = innerPadding.calculateBottomPadding(),
+                            paginationError = state.paginationError,
+                            onRetryNextPage = {
+                                viewModel.sendIntent(CharactersIntent.LoadNextPage)
+                            },
                         )
                 }
             }
@@ -305,6 +310,8 @@ fun CharactersGrid(
     onFavouriteClick: (CharacterUi) -> Unit,
     modifier: Modifier = Modifier,
     bottomPadding: Dp = 0.dp,
+    paginationError: String? = null,
+    onRetryNextPage: () -> Unit = {},
 ) {
     val configuration = LocalConfiguration.current
     val columns = if (configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) GRID_COLUMNS_LANDSCAPE else GRID_COLUMNS_PORTRAIT
@@ -349,6 +356,25 @@ fun CharactersGrid(
                     contentAlignment = Alignment.Center,
                 ) {
                     CircularProgressIndicator(modifier = Modifier.size(LOADING_INDICATOR_SIZE.dp))
+                }
+            }
+        }
+
+        if (paginationError != null) {
+            item(span = { GridItemSpan(maxLineSpan) }) {
+                TextButton(
+                    onClick = onRetryNextPage,
+                    modifier =
+                        Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = GRID_SPACING.dp)
+                            .testTag("pagination_error_retry"),
+                ) {
+                    Text(
+                        text = stringResource(R.string.pagination_error_retry),
+                        color = MaterialTheme.colorScheme.error,
+                        textAlign = TextAlign.Center,
+                    )
                 }
             }
         }

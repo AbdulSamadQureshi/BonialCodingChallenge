@@ -29,19 +29,38 @@ A production-quality Android app covering all challenge requirements plus severa
 
 ## Architecture Decisions
 
-### Why Multi-Module?
+### Why Multi-Module (Layer Modules, not Feature Modules)?
 
-Five modules (`:app`, `:domain`, `:data`, `:network`, `:core`) rather than a single module because:
+The project uses **layer modules** (`:app`, `:domain`, `:data`, `:network`, `:core`) rather than feature modules (`:feature:characters`, `:feature:favourites`) or a single module.
 
-- **Build speed** — Gradle only recompiles modules with changed inputs. Touching a ViewModel in `:app` does not recompile `:domain` or `:data`.
-- **Enforced boundaries** — `:domain` has zero Android dependencies. Use cases and repository interfaces are pure Kotlin, making them trivially testable.
-- **Scalability** — Adding a feature (e.g., episodes screen) means creating a new module that depends on `:domain` without touching existing modules.
+**Why not a single module?**
+A single module removes compile-time boundaries. Nothing stops a ViewModel from importing a Room DAO directly. `:domain` can accidentally grow Android dependencies. All 49 Kotlin files recompile on every change.
+
+**Why layer modules over feature modules?**
+Feature modules optimise for **team parallelism** — multiple squads owning separate vertical slices without merge conflicts. This is the right architecture for a large app with 5+ engineers.
+
+This project has **two screens and one developer**. Feature modules would require duplicating the dependency graph per feature (each needs its own DI module, domain interfaces, and data sources) and would make cross-cutting concerns like `GetEnrichedCharactersUseCase` — which combines characters and favourites — awkward to place without creating a shared `:feature:common` module that immediately defeats the purpose.
+
+Layer modules deliver the key benefit of feature modules — **enforced compile-time boundaries** — without the overhead:
+- `:domain` has zero Android dependencies; use cases and repository interfaces are pure Kotlin
+- `:data` cannot reach into `:app`; no accidental leakage of UI concerns into the data layer
+- Incremental builds stay fast — touching a ViewModel recompiles only `:app`, not `:domain` or `:data`
+
+**Migration path if the app grows:** keep the layer modules as shared infrastructure and add feature modules on top (`:feature:characters`, `:feature:favourites`) that depend on `:domain` and `:core` but not on each other.
 
 ### Why MVI over MVVM?
 
-MVI was chosen over plain MVVM because the character list screen has non-trivial concurrent concerns: search, pagination, retry, and favourite toggles all interact with the same state. MVI's single immutable state object and explicit intent channel make these interactions predictable and debuggable.
+Plain MVVM works well for simple screens with one or two independently-updating data streams. The character list screen is not simple — **search, pagination, retry, and favourite toggles all run concurrently and all touch the same state**.
 
-The custom `MviViewModel<S, I, E>` base class in `:core` is intentionally thin — it provides the state/intent/effect wiring but imposes no constraint on how `handleIntent()` is implemented, leaving room for coroutine-based async work inside each ViewModel.
+With MVVM and multiple `LiveData`/`StateFlow` fields, the UI must reconcile several independently-updating streams. It becomes easy to render inconsistent combinations: `isLoading=true` with `error != null`, or `characters` showing while `isInitialLoading=true`. Every new state field multiplies the number of combinations the UI must handle defensively.
+
+MVI enforces:
+- **One immutable state object** — every possible screen combination is an explicit named state. The UI is a pure function of that state.
+- **One update path** — `setState { copy(...) }` is the only way to mutate state. No race between two `_myLiveData.value = ...` assignments.
+- **Explicit intent channel** — every user action is a named, inspectable object in the intent stream. Debugging is reading a log of intents, not hunting across multiple setter calls.
+- **Side effects via a separate channel** — one-time events (share sheet, toast) go through `Channel<E>` and are not part of state, so they don't re-fire on recomposition.
+
+The trade-off is boilerplate: every screen needs a State data class, an Intent sealed class, and an Effect sealed class. For a simple static screen this is overhead. For a screen with concurrent async operations, the structure pays for itself.
 
 ### Why a generation counter for retry/search?
 
@@ -78,6 +97,22 @@ The delay logic lives inside the `debounce { (query, gen) -> ... }` lambda, keep
 2. `FavouritesRepository.getFavouriteCoverUrls(): Flow<Set<String>>`
 
 When the user toggles a favourite, Room emits a new set, `combine` re-fires, and every character card in the list immediately reflects the updated state — no network round-trip, no manual list mutation.
+
+### Network Failure & Empty State Handling
+
+| Scenario | UI behaviour |
+|---|---|
+| Initial load fails | Full-screen `ErrorMessage` with the HTTP-specific message and a **Retry** button |
+| Pagination (page 2+) fails | Loaded list stays visible; a sticky **"Failed to load more. Tap to retry."** banner appears in the grid footer. Tapping re-sends `LoadNextPage`. |
+| Search returns 404 | API 404 is treated as "no results", not an error. Dedicated `EmptySearchState` shown with the query and a suggestion to try a different term. |
+| No characters at all | `EmptyState` shown with a retry prompt. |
+| Detail screen fails | Full-screen `ErrorMessage` with a **Retry** button that re-fetches the same character ID. |
+
+**Two separate error fields in `CharactersState`:**
+- `error: String?` — full-screen failure (initial load or search page 1). Shown in place of the grid.
+- `paginationError: String?` — partial failure (page 2+). Shown inside the grid footer. The loaded content stays visible.
+
+Keeping them separate prevents a pagination error from clearing the screen the user is already reading.
 
 ### Rate-limit retry
 

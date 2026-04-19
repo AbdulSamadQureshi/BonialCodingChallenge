@@ -15,7 +15,7 @@ A production-quality Android application built with **Clean Architecture**, **MV
 | **Character detail** | Full info screen with species, status, origin, episode count |
 | **Share** | Android share-sheet with formatted character card text |
 | **Offline support** | Favourites survive network loss via Room; list served from in-memory StateFlow cache |
-| **Error & retry** | Human-readable error messages; one-tap retry fires immediately without debounce |
+| **Error & retry** | Full-screen error + retry on initial load; sticky in-grid retry banner on pagination failure |
 | **Shimmer loading** | Skeleton shimmer on initial load and pagination |
 
 ---
@@ -89,6 +89,22 @@ graph TD
 
 ## Key Technical Decisions
 
+### Why MVI over MVVM?
+Plain MVVM works well for simple screens. The character list screen is not simple — search, pagination, retry, and favourite toggles all run concurrently and all touch the same state. With MVVM and multiple `LiveData`/`StateFlow` fields, the UI must reconcile several independently-updating streams and it becomes easy to render inconsistent combinations (e.g. `isLoading=true` and `error != null` at the same time).
+
+MVI enforces a **single immutable state object** and a **single update path** (`setState { copy(...) }`). Every possible screen combination is an explicit named state. Debugging means inspecting one object. Testing means asserting one object.
+
+The custom `MviViewModel<S, I, E>` base class in `:core` is intentionally thin — it provides the channel/flow wiring but imposes no constraint on how `handleIntent()` is implemented, so coroutine-based async work fits naturally inside each ViewModel.
+
+### Why layer modules instead of feature modules?
+Feature modules (`:characters`, `:favourites`, etc.) optimise for team parallelism — multiple squads can own separate features without merge conflicts. This is the right call for a large app with 5+ engineers.
+
+This is a **solo coding challenge** with two screens. Feature modules would require duplicating the dependency graph (each feature module needs its own DI module, its own domain interfaces, its own data sources) and would make cross-feature concerns like the favourites enrichment use case awkward to place.
+
+Layer modules (`:app`, `:domain`, `:data`, `:network`, `:core`) give the key benefit — **enforced compile-time boundaries** — without the overhead. `:domain` has zero Android dependencies and is trivially testable. `:data` cannot reach into `:app`. Incremental build times stay fast because Gradle only recompiles layers whose inputs changed.
+
+If the app grew to 3+ features with dedicated teams, the natural migration is: keep the layer modules as shared infrastructure, add feature modules on top (`:feature:characters`, `:feature:favourites`) that depend on `:domain` and `:core` but not on each other.
+
 ### Search + Pagination concurrency
 `searchParams: MutableStateFlow<Pair<String, Int>>` carries the query string and a **generation counter**. `flatMapLatest` cancels the previous inner flow on every new emission, making concurrent searches structurally impossible. Pagination jobs are tracked in `paginationJob: Job?` and cancelled the moment a new search fires.
 
@@ -100,6 +116,9 @@ The generation counter doubles as a retry trigger — incrementing it forces a n
 
 ### Favourites enrichment
 `GetEnrichedCharactersUseCase` combines the API response `Flow` with `FavouritesRepository.getFavouriteCoverUrls(): Flow<Set<String>>` using `combine`, so the favourite state on every character card updates reactively without re-fetching from the network.
+
+### Pagination error handling
+When page 2+ fails, the loaded list is preserved and a sticky **"Failed to load more. Tap to retry."** banner replaces the loading indicator in the grid footer. Tapping it re-sends `LoadNextPage` without clearing the existing results. This is stored as `paginationError: String?` in state — separate from `error` which is used only for full-screen failures.
 
 ### Assisted injection for detail screen
 `CharacterDetailViewModel` uses Hilt's `@AssistedInject` factory pattern so the character ID can be passed at runtime while all other dependencies are provided by the DI graph.
