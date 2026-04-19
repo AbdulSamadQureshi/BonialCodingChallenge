@@ -145,6 +145,8 @@ jobs:
     name: Build Debug APK
     runs-on: ubuntu-latest
     needs: coverage
+    # Only publish a release on pushes to main, not on PRs
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -176,9 +178,25 @@ jobs:
       - name: Build debug APK
         run: ./gradlew assembleDebug
 
-      - name: Upload debug APK
-        uses: actions/upload-artifact@v4
+      - name: Rename APK with build info
+        run: |
+          BUILD_DATE=$(date +'%Y%m%d')
+          SHORT_SHA=$(echo "${{ github.sha }}" | cut -c1-7)
+          mv app/build/outputs/apk/debug/app-debug.apk \
+             app/build/outputs/apk/debug/brochure-debug-${BUILD_DATE}-${SHORT_SHA}.apk
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
         with:
-          name: debug-apk
-          path: app/build/outputs/apk/debug/*.apk
-          retention-days: 14
+          tag_name: build-${{ github.run_number }}
+          name: "Debug Build #${{ github.run_number }}"
+          body: |
+            **Debug build** from `${{ github.ref_name }}` — ${{ github.event.head_commit.message }}
+
+            **Commit:** [`${{ github.sha }}`](${{ github.server_url }}/${{ github.repository }}/commit/${{ github.sha }})
+            **Built at:** ${{ github.event.head_commit.timestamp }}
+
+            > ⬇️ Download the APK from **Assets** below and install it on your Android device.
+            > Make sure *Install from unknown sources* is enabled in your device settings.
+          files: app/build/outputs/apk/debug/brochure-debug-*.apk
+          prerelease: true
