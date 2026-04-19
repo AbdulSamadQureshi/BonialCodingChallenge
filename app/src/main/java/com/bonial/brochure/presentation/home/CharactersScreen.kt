@@ -42,8 +42,6 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SearchBarDefaults
-import androidx.compose.material3.SnackbarHost
-import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -70,10 +68,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.flowWithLifecycle
 import coil3.compose.AsyncImage
 import coil3.compose.AsyncImagePainter
 import coil3.request.ImageRequest
@@ -102,9 +97,6 @@ fun CharactersScreen(
         }
     }
 
-    val snackbarHostState = remember { SnackbarHostState() }
-    val lifecycleOwner = LocalLifecycleOwner.current
-
     val shouldLoadMore by remember(lazyGridState) {
         derivedStateOf {
             val lastVisible =
@@ -122,23 +114,11 @@ fun CharactersScreen(
         if (shouldLoadMore) viewModel.sendIntent(CharactersIntent.LoadNextPage)
     }
 
-    LaunchedEffect(viewModel.effect, lifecycleOwner) {
-        viewModel.effect
-            .flowWithLifecycle(lifecycleOwner.lifecycle, Lifecycle.State.STARTED)
-            .collect { effect ->
-                when (effect) {
-                    is CharactersEffect.ShowError ->
-                        snackbarHostState.showSnackbar(effect.message)
-                }
-            }
-    }
-
     Scaffold(
         modifier =
             Modifier
                 .fillMaxSize()
                 .testTag("characters_screen"),
-        snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
         containerColor = MaterialTheme.colorScheme.background,
     ) { innerPadding ->
         Column(modifier = Modifier.fillMaxSize()) {

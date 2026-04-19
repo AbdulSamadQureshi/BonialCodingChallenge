@@ -46,11 +46,8 @@ sealed class CharactersIntent {
     ) : CharactersIntent()
 }
 
-sealed class CharactersEffect {
-    data class ShowError(
-        val message: String,
-    ) : CharactersEffect()
-}
+// No one-shot effects on the list screen — errors and empty states are part of persistent state.
+sealed class CharactersEffect
 
 @OptIn(FlowPreview::class)
 @HiltViewModel
