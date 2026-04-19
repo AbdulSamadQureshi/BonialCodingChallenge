@@ -9,7 +9,6 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
-@Suppress("TooManyFunctions")
 class SharedPrefsManager
     @Inject
     constructor(
