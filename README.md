@@ -391,7 +391,7 @@ git checkout develop           # always work from develop
 4.  CI must pass (Code Quality + Unit Tests + Coverage + Screenshots)
 5.  Merge once green — no approval required (solo project)
 ```
-Releases are cut by opening a `develop → main` PR. Merging it automatically builds the signed APK and publishes a GitHub Release.
+Releases are cut by merging any PR into `main` (`develop → main` for normal releases, `hotfix/* → main` for emergency fixes). The build always runs from `main` and automatically publishes a GitHub Release.
 
 ---
 
@@ -453,10 +453,10 @@ Feature branches are **automatically deleted** after their PR is merged. `develo
 | Event | Code Quality | Unit Tests | Coverage | Screenshot Tests | Build & Release |
 |---|---|---|---|---|---|
 | Feature PR opened/updated → `develop` | ✅ | ✅ | ✅ | ✅ | ❌ |
-| PR opened/updated `develop` → `main` | ❌ | ❌ | ❌ | ❌ | ❌ |
-| PR **merged** `develop` → `main` | ❌ | ❌ | ❌ | ❌ | ✅ |
+| Any PR opened/updated → `main` | ❌ | ❌ | ❌ | ❌ | ❌ |
+| Any PR **merged** → `main` | ❌ | ❌ | ❌ | ❌ | ✅ |
 
-> All checks run only on feature → `develop` PRs. By the time `develop` is ready to release, every commit in it has already been verified. Running the checks again on the `develop → main` PR would be redundant.
+> All checks run only on feature → `develop` PRs. By the time any branch is ready to merge into `main`, the code has already been verified. Releases always build from `main` — the source branch does not matter.
 
 ### CI Jobs
 

@@ -158,8 +158,8 @@ jobs:
           retention-days: 7
 
   # ─────────────────────────────────────────────────────────────────────────────
-  # Runs ONLY when a develop → main PR is merged.
-  # Direct pushes to main and merges into develop never trigger this job.
+  # Runs whenever ANY PR is merged into main (develop → main, hotfix → main, etc.)
+  # Releases always come from main — the head branch does not matter.
   # ─────────────────────────────────────────────────────────────────────────────
   build:
     name: Build & Release Debug APK
@@ -169,8 +169,7 @@ jobs:
     if: >
       github.event_name == 'pull_request' &&
       github.event.pull_request.merged == true &&
-      github.event.pull_request.base.ref == 'main' &&
-      github.event.pull_request.head.ref == 'develop'
+      github.event.pull_request.base.ref == 'main'
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
