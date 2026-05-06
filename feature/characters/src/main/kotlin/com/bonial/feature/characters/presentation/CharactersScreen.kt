@@ -1,4 +1,4 @@
-package com.bonial.feature.characters
+package com.bonial.feature.characters.presentation
 
 import android.content.res.Configuration
 import androidx.compose.animation.core.Spring
@@ -77,7 +77,7 @@ import coil3.request.crossfade
 import coil3.request.placeholder
 import com.bonial.core.ui.extensions.shimmerEffect
 import com.bonial.core.ui.theme.toStatusColorSet
-import com.bonial.feature.characters.CharacterUi
+import com.bonial.feature.characters.model.CharacterUi
 import com.bonial.feature.characters.R
 
 @OptIn(ExperimentalMaterial3Api::class)

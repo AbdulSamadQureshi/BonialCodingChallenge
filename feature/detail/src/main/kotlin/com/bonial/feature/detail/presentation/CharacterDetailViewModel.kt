@@ -1,4 +1,4 @@
-package com.bonial.feature.detail
+package com.bonial.feature.detail.presentation
 
 import androidx.lifecycle.viewModelScope
 import com.bonial.core.base.MviViewModel
@@ -9,6 +9,8 @@ import com.bonial.domain.useCase.characters.GetCharacterShareTextUseCase
 import com.bonial.domain.useCase.favourites.IsFavouriteFlowUseCase
 import com.bonial.domain.useCase.favourites.ToggleFavouriteUseCase
 import com.bonial.domain.utils.toErrorMessage
+import com.bonial.feature.detail.presentation.CharacterDetailKey
+import com.bonial.feature.detail.model.CharacterDetailUi
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject

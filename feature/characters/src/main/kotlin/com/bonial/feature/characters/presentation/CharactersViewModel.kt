@@ -1,4 +1,4 @@
-package com.bonial.feature.characters
+package com.bonial.feature.characters.presentation
 
 import androidx.lifecycle.viewModelScope
 import com.bonial.core.base.MviViewModel
@@ -8,6 +8,7 @@ import com.bonial.domain.useCase.characters.CharactersParams
 import com.bonial.domain.useCase.characters.GetEnrichedCharactersUseCase
 import com.bonial.domain.useCase.favourites.ToggleFavouriteUseCase
 import com.bonial.domain.utils.toErrorMessage
+import com.bonial.feature.characters.model.CharacterUi
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview

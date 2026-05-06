@@ -7,7 +7,7 @@ import kotlinx.serialization.Serializable
  * Root destination for the character list screen.
  *
  * [CharacterDetailKey] lives in :feature:detail because it is also the
- * AssistedInject parameter for [com.bonial.feature.detail.CharacterDetailViewModel].
+ * AssistedInject parameter for [com.bonial.feature.detail.presentation.CharacterDetailViewModel].
  */
 @Serializable
 data object CharacterListKey : NavKey

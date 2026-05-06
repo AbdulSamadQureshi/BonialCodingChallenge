@@ -68,7 +68,13 @@
       "Bash(./gradlew :domain:testDebugUnitTest :data:testDebugUnitTest :network:testDebugUnitTest :core:testDebugUnitTest :app:testDebugUnitTest --continue)",
       "Bash(./gradlew :data:compileDebugUnitTestKotlin)",
       "Bash(./gradlew :domain:testDebugUnitTest :data:testDebugUnitTest :network:testDebugUnitTest :core:testDebugUnitTest :app:testDebugUnitTest --rerun-tasks)",
-      "Bash(git rm *)"
+      "Bash(git rm *)",
+      "Bash(./gradlew :data:ktlintTestSourceSetCheck --rerun-tasks)",
+      "Bash(./gradlew :data:detekt :data:ktlintMainSourceSetCheck :data:compileDebugKotlin)",
+      "Bash(./gradlew :data:ktlintMainSourceSetCheck)",
+      "Bash(./gradlew :data:ktlintFormat)",
+      "Bash(./gradlew :data:testDebugUnitTest --rerun-tasks)",
+      "Bash(./gradlew help *)"
     ]
   }
 }

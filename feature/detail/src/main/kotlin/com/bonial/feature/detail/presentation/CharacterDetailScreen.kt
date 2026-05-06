@@ -1,4 +1,4 @@
-package com.bonial.feature.detail
+package com.bonial.feature.detail.presentation
 
 import android.content.Intent
 import androidx.compose.animation.AnimatedVisibility
@@ -66,6 +66,7 @@ import coil3.request.placeholder
 import com.bonial.core.ui.extensions.shimmerEffect
 import com.bonial.core.ui.theme.toStatusColorSet
 import com.bonial.feature.detail.R
+import com.bonial.feature.detail.model.CharacterDetailUi
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

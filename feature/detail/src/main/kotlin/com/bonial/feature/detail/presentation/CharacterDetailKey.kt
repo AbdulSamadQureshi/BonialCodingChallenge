@@ -1,4 +1,4 @@
-package com.bonial.feature.detail
+package com.bonial.feature.detail.presentation
 
 import androidx.navigation3.runtime.NavKey
 import kotlinx.serialization.Serializable

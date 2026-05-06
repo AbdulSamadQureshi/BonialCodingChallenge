@@ -9,10 +9,10 @@ import com.bonial.domain.useCase.characters.CharacterDetailUseCase
 import com.bonial.domain.useCase.characters.GetCharacterShareTextUseCase
 import com.bonial.domain.useCase.favourites.IsFavouriteFlowUseCase
 import com.bonial.domain.useCase.favourites.ToggleFavouriteUseCase
-import com.bonial.feature.detail.CharacterDetailEffect
-import com.bonial.feature.detail.CharacterDetailIntent
-import com.bonial.feature.detail.CharacterDetailKey
-import com.bonial.feature.detail.CharacterDetailViewModel
+import com.bonial.feature.detail.presentation.CharacterDetailEffect
+import com.bonial.feature.detail.presentation.CharacterDetailIntent
+import com.bonial.feature.detail.presentation.CharacterDetailKey
+import com.bonial.feature.detail.presentation.CharacterDetailViewModel
 import com.google.common.truth.Truth.assertThat
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
