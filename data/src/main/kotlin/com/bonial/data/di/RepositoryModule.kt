@@ -3,11 +3,9 @@ package com.bonial.data.di
 import com.bonial.data.repository.CharactersRepositoryImpl
 import com.bonial.data.repository.FavouritesRepositoryImpl
 import com.bonial.data.repository.LocalStorageRepositoryImpl
-import com.bonial.data.repository.PokemonRepositoryImpl
 import com.bonial.domain.repository.CharactersRepository
 import com.bonial.domain.repository.FavouritesRepository
 import com.bonial.domain.repository.LocalStorageRepository
-import com.bonial.domain.repository.PokemonRepository
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
@@ -28,8 +26,4 @@ abstract class RepositoryModule {
     @Binds
     @Singleton
     abstract fun bindFavouritesRepository(impl: FavouritesRepositoryImpl): FavouritesRepository
-
-    @Binds
-    @Singleton
-    abstract fun bindPokemonRepository(impl: PokemonRepositoryImpl): PokemonRepository
 }

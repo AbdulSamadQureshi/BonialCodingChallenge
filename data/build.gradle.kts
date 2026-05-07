@@ -40,7 +40,6 @@ dependencies {
     ksp(libs.hilt.android.compiler)
     implementation(libs.kotlinx.coroutines.core)
     implementation(libs.retrofit.core)
-    implementation(libs.retrofit.gson)
     implementation(libs.room.runtime)
     implementation(libs.room.ktx)
     ksp(libs.room.compiler)
