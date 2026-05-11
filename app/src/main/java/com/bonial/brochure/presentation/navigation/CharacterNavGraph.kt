@@ -7,10 +7,11 @@ import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.ui.NavDisplay
-import com.bonial.brochure.presentation.detail.CharacterDetailScreen
-import com.bonial.brochure.presentation.home.CharacterDetailViewModel
-import com.bonial.brochure.presentation.home.CharactersScreen
-import com.bonial.brochure.presentation.home.CharactersViewModel
+import com.bonial.feature.characters.presentation.CharactersScreen
+import com.bonial.feature.characters.presentation.CharactersViewModel
+import com.bonial.feature.detail.presentation.CharacterDetailKey
+import com.bonial.feature.detail.presentation.CharacterDetailScreen
+import com.bonial.feature.detail.presentation.CharacterDetailViewModel
 
 @Composable
 fun CharacterNavGraph() {
